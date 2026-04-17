@@ -36,4 +36,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('file:changed', (_event, info) => callback(info));
     return () => ipcRenderer.removeAllListeners('file:changed');
   },
+
+  // 右键菜单
+  contextMenu: {
+    show: (type: 'file' | 'editor', data: Record<string, string>) =>
+      ipcRenderer.invoke('contextMenu:show', type, data),
+  },
+
+  // 菜单动作回调（主进程 → 渲染进程）
+  onMenuAction: (callback: (action: { type: string; payload: Record<string, string> }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, action: { type: string; payload: Record<string, string> }) =>
+      callback(action);
+    ipcRenderer.on('menu:action', handler);
+    return () => ipcRenderer.removeListener('menu:action', handler);
+  },
 });

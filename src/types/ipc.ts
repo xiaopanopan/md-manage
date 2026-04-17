@@ -40,6 +40,11 @@ export interface ContextMenuAPI {
   show(type: 'file' | 'editor', data: Record<string, string>): Promise<void>;
 }
 
+export interface MenuAction {
+  type: 'openFile' | 'rename' | 'delete' | 'moveToArchives' | 'newFile' | 'newFolder';
+  payload: Record<string, string>;
+}
+
 export interface HistoryAPI {
   list(filePath: string): Promise<Version[]>;
   get(filePath: string, versionId: string): Promise<string>;
@@ -55,6 +60,7 @@ export interface ElectronAPI {
   contextMenu: ContextMenuAPI;
   history: HistoryAPI;
   onFileChanged(callback: (info: unknown) => void): () => void;
+  onMenuAction(callback: (action: MenuAction) => void): () => void;
 }
 
 // 全局类型扩展

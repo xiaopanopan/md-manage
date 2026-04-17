@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import { registerFileSystemHandlers } from './ipc/fileSystem';
 import { registerConfigHandlers } from './ipc/config';
+import { registerContextMenuHandlers } from './ipc/contextMenu';
 import { getWindowState, saveWindowState } from './windowState';
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -57,6 +58,7 @@ function createWindow() {
 app.whenReady().then(() => {
   registerFileSystemHandlers();
   registerConfigHandlers();
+  registerContextMenuHandlers();
 
   createWindow();
 
