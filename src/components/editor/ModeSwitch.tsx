@@ -10,9 +10,10 @@ export function ModeSwitch() {
   const isDirty = useAppStore((s) => s.isDirty);
   const markSaved = useAppStore((s) => s.markSaved);
 
+  const disabled = !currentFile;
+
   const handleSwitch = async (mode: 'read' | 'edit') => {
-    if (mode === viewMode) return;
-    // 切换到阅读模式前保存
+    if (disabled || mode === viewMode) return;
     if (viewMode === 'edit' && isDirty && currentFile) {
       try {
         await window.electronAPI?.file.write(currentFile, currentContent);
@@ -27,14 +28,16 @@ export function ModeSwitch() {
   return (
     <div className={styles.container}>
       <button
-        className={`${styles.btn} ${viewMode === 'read' ? styles.active : ''}`}
+        className={`${styles.btn} ${viewMode === 'read' ? styles.active : ''} ${disabled ? styles.disabled : ''}`}
         onClick={() => handleSwitch('read')}
+        title="阅读模式 (⌘E)"
       >
         Read
       </button>
       <button
-        className={`${styles.btn} ${viewMode === 'edit' ? styles.active : ''}`}
+        className={`${styles.btn} ${viewMode === 'edit' ? styles.active : ''} ${disabled ? styles.disabled : ''}`}
         onClick={() => handleSwitch('edit')}
+        title="编辑模式 (⌘E)"
       >
         Edit
       </button>

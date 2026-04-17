@@ -23,6 +23,9 @@ importers:
       '@codemirror/language-data':
         specifier: ^6.5.2
         version: 6.5.2
+      '@codemirror/search':
+        specifier: ^6.6.0
+        version: 6.6.0
       '@codemirror/state':
         specifier: ^6.6.0
         version: 6.6.0
@@ -35,12 +38,6 @@ importers:
       chokidar:
         specifier: ^5.0.0
         version: 5.0.0
-      diff:
-        specifier: ^9.0.0
-        version: 9.0.0
-      fuse.js:
-        specifier: ^7.3.0
-        version: 7.3.0
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -84,9 +81,6 @@ importers:
         specifier: ^4.4.0
         version: 4.5.7(@types/react@18.3.28)(immer@10.2.0)(react@18.3.1)
     devDependencies:
-      '@types/diff':
-        specifier: ^7.0.0
-        version: 7.0.2
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.39
@@ -293,6 +287,9 @@ packages:
 
   '@codemirror/lint@6.9.5':
     resolution: {integrity: sha512-GElsbU9G7QT9xXhpUg1zWGmftA/7jamh+7+ydKRuT0ORpWS3wOSP0yT1FOlIZa7mIJjpVPipErsyvVqB9cfTFA==}
+
+  '@codemirror/search@6.6.0':
+    resolution: {integrity: sha512-koFuNXcDvyyotWcgOnZGmY7LZqEOXZaaxD/j6n18TCLx2/9HieZJ5H6hs1g8FiRxBD0DNfs0nXn17g872RmYdw==}
 
   '@codemirror/state@6.6.0':
     resolution: {integrity: sha512-4nbvra5R5EtiCzr9BTHiTLc+MLXK2QGiAVYMyi8PkQd3SR+6ixar/Q/01Fa21TBIDOZXgeWV4WppsQolSreAPQ==}
@@ -714,9 +711,6 @@ packages:
 
   '@types/debug@4.1.13':
     resolution: {integrity: sha512-KSVgmQmzMwPlmtljOomayoR89W4FynCAi3E8PPs7vmDVPe84hT+vGPKkJfThkmXs0x0jAaa9U8uW8bbfyS2fWw==}
-
-  '@types/diff@7.0.2':
-    resolution: {integrity: sha512-JSWRMozjFKsGlEjiiKajUjIJVKuKdE3oVy2DNtK+fUo8q82nhFZ2CPQwicAIkXrofahDXrWJ7mjelvZphMS98Q==}
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
@@ -1144,10 +1138,6 @@ packages:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
-  diff@9.0.0:
-    resolution: {integrity: sha512-svtcdpS8CgJyqAjEQIXdb3OjhFVVYjzGAPO8WGCmRbrml64SPw/jJD4GoE98aR7r25A0XcgrK3F02yw9R/vhQw==}
-    engines: {node: '>=0.3.1'}
-
   dir-compare@3.3.0:
     resolution: {integrity: sha512-J7/et3WlGUCxjdnD3HAAzQ6nsnc0WL6DD7WcwJb7c39iH1+AWfg+9OqzJNaI6PkBwBvm1mhZNL9iY/nRiZXlPg==}
 
@@ -1327,10 +1317,6 @@ packages:
 
   function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
-
-  fuse.js@7.3.0:
-    resolution: {integrity: sha512-plz8RVjfcDedTGfVngWH1jmJvBvAwi1v2jecfDerbEnMcmOYUEEwKFTHbNoCiYyzaK2Ws8lABkTCcRSqCY1q4w==}
-    engines: {node: '>=10'}
 
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
@@ -2798,6 +2784,12 @@ snapshots:
       '@codemirror/view': 6.41.0
       crelt: 1.0.6
 
+  '@codemirror/search@6.6.0':
+    dependencies:
+      '@codemirror/state': 6.6.0
+      '@codemirror/view': 6.41.0
+      crelt: 1.0.6
+
   '@codemirror/state@6.6.0':
     dependencies:
       '@marijn/find-cluster-break': 1.0.2
@@ -3195,8 +3187,6 @@ snapshots:
   '@types/debug@4.1.13':
     dependencies:
       '@types/ms': 2.1.0
-
-  '@types/diff@7.0.2': {}
 
   '@types/estree@1.0.8': {}
 
@@ -3708,8 +3698,6 @@ snapshots:
 
   diff-sequences@29.6.3: {}
 
-  diff@9.0.0: {}
-
   dir-compare@3.3.0:
     dependencies:
       buffer-equal: 1.0.1
@@ -3962,8 +3950,6 @@ snapshots:
     optional: true
 
   function-bind@1.1.2: {}
-
-  fuse.js@7.3.0: {}
 
   gensync@1.0.0-beta.2: {}
 

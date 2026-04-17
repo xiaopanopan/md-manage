@@ -5,7 +5,6 @@ import { registerConfigHandlers, getConfig } from './ipc/config';
 import { registerContextMenuHandlers } from './ipc/contextMenu';
 import { registerWindowHandlers } from './ipc/window';
 import { registerImportHandlers } from './ipc/import';
-import { registerHistoryHandlers } from './ipc/history';
 import { getWindowState, saveWindowState } from './windowState';
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -32,6 +31,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
+      webSecurity: false,
     },
   });
 
@@ -65,7 +65,6 @@ app.whenReady().then(() => {
   registerContextMenuHandlers();
   registerWindowHandlers();
   registerImportHandlers();
-  registerHistoryHandlers();
 
   createWindow();
 

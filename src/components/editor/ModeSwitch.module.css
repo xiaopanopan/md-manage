@@ -42,3 +42,8 @@
   height: 1px;
   background: var(--color-black);
 }
+
+.btn.disabled {
+  opacity: 0.2;
+  pointer-events: none;
+}

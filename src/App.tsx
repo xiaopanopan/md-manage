@@ -15,8 +15,6 @@ import { SettingsPanel } from '@/components/settings/SettingsPanel';
 import { EditorArea } from '@/components/editor/EditorArea';
 import { MarkdownRenderer } from '@/components/reader/MarkdownRenderer';
 import { ModeSwitch } from '@/components/editor/ModeSwitch';
-import { SearchModal } from '@/components/search/SearchModal';
-import { HistoryPanel } from '@/components/history/HistoryPanel';
 
 // 主题应用到 <html> 的 data-theme 属性（带平滑过渡）
 function applyTheme(theme: Theme, systemDark: boolean) {
@@ -47,8 +45,6 @@ export default function App() {
   const isDirty = useIsDirty();
   const { openSettings, switchMode } = useUIActions();
   const markSaved = useAppStore((s) => s.markSaved);
-  const openSearch = useAppStore((s) => s.openSearch);
-  const openHistory = useAppStore((s) => s.openHistory);
 
   // 监听系统深色模式
   useEffect(() => {
@@ -110,25 +106,10 @@ export default function App() {
         return;
       }
 
-      // Cmd+P → 快速搜索
-      if (mod && e.key === 'p') {
-        e.preventDefault();
-        openSearch();
-        return;
-      }
-
-      // Cmd+Shift+H → 版本历史
-      if (mod && e.shiftKey && e.key === 'H') {
-        e.preventDefault();
-        if (currentFile) openHistory();
-        return;
-      }
-
       // Cmd+E → 切换 READ/EDIT 模式
       if (mod && e.key === 'e') {
         e.preventDefault();
         if (!currentFile) return;
-        // 切换到阅读模式前先保存
         if (viewMode === 'edit' && isDirty) {
           try {
             await window.electronAPI?.file.write(currentFile, currentContent);
@@ -140,40 +121,21 @@ export default function App() {
         switchMode(viewMode === 'edit' ? 'read' : 'edit');
         return;
       }
-
-      // Cmd+Shift+E → 导出（在阅读模式下触发 PDF 导出）
-      if (mod && e.shiftKey && e.key === 'E') {
-        e.preventDefault();
-        // ExportBar 内部处理
-        return;
-      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [openSettings, openSearch, openHistory, switchMode, viewMode, currentFile, currentContent, isDirty, markSaved]);
+  }, [openSettings, switchMode, viewMode, currentFile, currentContent, isDirty, markSaved]);
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      {/* 侧边栏 */}
       {sidebarVisible && <Sidebar />}
 
-      {/* 主内容区 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* 顶部 READ/EDIT 切换按钮 */}
         <ModeSwitch />
-
-        {/* 编辑器 / 阅读器 */}
         {viewMode === 'edit' ? <EditorArea /> : <MarkdownRenderer />}
       </div>
 
-      {/* 设置面板（全屏遮罩） */}
       {settingsOpen && <SettingsPanel />}
-
-      {/* 搜索弹窗 */}
-      <SearchModal />
-
-      {/* 版本历史侧边抽屉 */}
-      <HistoryPanel />
     </div>
   );
 }

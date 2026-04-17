@@ -1,6 +1,5 @@
 /**
  * 细粒度 selector hooks — 避免组件因无关状态变化重渲染
- * 用法：import { useCurrentFile, useViewMode } from '@/hooks/useAppStore'
  */
 import { useAppStore as useStore } from '@/stores/appStore';
 
@@ -15,14 +14,12 @@ export const useRecentFiles = () => useStore((s) => s.recentFiles);
 export const useViewMode = () => useStore((s) => s.viewMode);
 export const useTheme = () => useStore((s) => s.theme);
 export const useSidebarVisible = () => useStore((s) => s.sidebarVisible);
-export const useSearchOpen = () => useStore((s) => s.searchOpen);
-export const useHistoryOpen = () => useStore((s) => s.historyOpen);
 export const useSettingsOpen = () => useStore((s) => s.settingsOpen);
 
 // ── 工作区 ──
 export const useWorkspace = () => useStore((s) => s.workspace);
 
-// ── Actions（稳定引用，不触发重渲染）──
+// ── Actions ──
 export const useFileActions = () =>
   useStore((s) => ({
     setCurrentFile: s.setCurrentFile,
@@ -39,10 +36,6 @@ export const useUIActions = () =>
     setTheme: s.setTheme,
     toggleSidebar: s.toggleSidebar,
     setSidebarVisible: s.setSidebarVisible,
-    openSearch: s.openSearch,
-    closeSearch: s.closeSearch,
-    openHistory: s.openHistory,
-    closeHistory: s.closeHistory,
     openSettings: s.openSettings,
     closeSettings: s.closeSettings,
   }));
@@ -50,5 +43,4 @@ export const useUIActions = () =>
 export const useWorkspaceActions = () =>
   useStore((s) => ({ setWorkspace: s.setWorkspace }));
 
-// 重新导出原始 store hook 供需要完整访问的场景使用
 export { useStore as useAppStore };

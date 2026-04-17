@@ -1,10 +1,8 @@
 // ============================================================
-// Digital Zen — ElectronAPI 接口契约
-// 维护者：Agent 1（Architecture Lead）
-// Agent 2 负责实现，其他 Agent 调用
+// md-manage — ElectronAPI 接口契约
 // ============================================================
 
-import type { FileNode, Version } from './file';
+import type { FileNode } from './file';
 
 export interface FileAPI {
   read(path: string): Promise<string>;
@@ -45,13 +43,6 @@ export interface MenuAction {
   payload: Record<string, string>;
 }
 
-export interface HistoryAPI {
-  save(filePath: string, content: string): Promise<void>;
-  list(filePath: string): Promise<Version[]>;
-  get(filePath: string, versionId: string): Promise<string>;
-  restore(filePath: string, versionId: string): Promise<void>;
-}
-
 export interface ImportAPI {
   files(destDir?: string): Promise<string[]>;
   folder(destDir?: string): Promise<string[]>;
@@ -75,7 +66,6 @@ export interface ElectronAPI {
   export: ExportAPI;
   import: ImportAPI;
   contextMenu: ContextMenuAPI;
-  history: HistoryAPI;
   window: WindowAPI;
   onFileChanged(callback: (info: unknown) => void): () => void;
   onMenuAction(callback: (action: MenuAction) => void): () => void;

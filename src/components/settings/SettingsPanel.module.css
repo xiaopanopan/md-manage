@@ -176,7 +176,7 @@
   position: absolute;
   width: 14px;
   height: 14px;
-  background: white;
+  background: var(--bg-white);
   border-radius: 50%;
   top: 3px;
   left: 3px;

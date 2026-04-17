@@ -16,6 +16,7 @@ import {
   historyKeymap,
   indentWithTab,
 } from '@codemirror/commands';
+import { search, searchKeymap } from '@codemirror/search';
 import {
   syntaxHighlighting,
   indentOnInput,
@@ -223,9 +224,13 @@ export function createExtensions(
     history(),
     EditorState.allowMultipleSelections.of(true),
 
+    // 搜索（Cmd+F / Cmd+H）
+    search(),
+
     // 快捷键
     keymap.of([
       ...markdownKeymap,
+      ...searchKeymap,
       indentWithTab,
       ...defaultKeymap,
       ...historyKeymap,

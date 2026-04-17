@@ -20,8 +20,6 @@ export const useAppStore = create<AppStore>()(
         viewMode: 'edit' as ViewMode,
         theme: 'auto' as Theme,
         sidebarVisible: true,
-        searchOpen: false,
-        historyOpen: false,
         settingsOpen: false,
 
         workspace: null,
@@ -43,21 +41,15 @@ export const useAppStore = create<AppStore>()(
         },
 
         markSaved() {
-          set((state) => {
-            state.isDirty = false;
-          });
+          set((state) => { state.isDirty = false; });
         },
 
         markDirty() {
-          set((state) => {
-            state.isDirty = true;
-          });
+          set((state) => { state.isDirty = true; });
         },
 
         setFiles(files: FileNode[]) {
-          set((state) => {
-            state.files = files;
-          });
+          set((state) => { state.files = files; });
         },
 
         addRecentFile(path: string) {
@@ -68,78 +60,38 @@ export const useAppStore = create<AppStore>()(
         },
 
         switchMode(mode: ViewMode) {
-          set((state) => {
-            state.viewMode = mode;
-          });
+          set((state) => { state.viewMode = mode; });
         },
 
         setTheme(theme: Theme) {
-          set((state) => {
-            state.theme = theme;
-          });
+          set((state) => { state.theme = theme; });
         },
 
         toggleSidebar() {
-          set((state) => {
-            state.sidebarVisible = !state.sidebarVisible;
-          });
+          set((state) => { state.sidebarVisible = !state.sidebarVisible; });
         },
 
         setSidebarVisible(visible: boolean) {
-          set((state) => {
-            state.sidebarVisible = visible;
-          });
-        },
-
-        openSearch() {
-          set((state) => {
-            state.searchOpen = true;
-          });
-        },
-
-        closeSearch() {
-          set((state) => {
-            state.searchOpen = false;
-          });
-        },
-
-        openHistory() {
-          set((state) => {
-            state.historyOpen = true;
-          });
-        },
-
-        closeHistory() {
-          set((state) => {
-            state.historyOpen = false;
-          });
+          set((state) => { state.sidebarVisible = visible; });
         },
 
         openSettings() {
-          set((state) => {
-            state.settingsOpen = true;
-          });
+          set((state) => { state.settingsOpen = true; });
         },
 
         closeSettings() {
-          set((state) => {
-            state.settingsOpen = false;
-          });
+          set((state) => { state.settingsOpen = false; });
         },
 
         setWorkspace(path: string) {
-          set((state) => {
-            state.workspace = path;
-          });
+          set((state) => { state.workspace = path; });
         },
       }),
       {
-        name: 'digitalzen-ui-state',
+        name: 'md-manage-ui-state',
         storage: createJSONStorage(() => localStorage),
-        // 只持久化 UI 偏好（不持久化文件内容）
         partialize: (state) => ({
           theme: state.theme,
-          viewMode: state.viewMode,
           sidebarVisible: state.sidebarVisible,
           workspace: state.workspace,
           recentFiles: state.recentFiles,

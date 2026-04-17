@@ -55,22 +55,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('import:drop', srcPaths, destDir),
   },
 
-  // ── 右键菜单（由 Agent 3 实现具体菜单内容）────────────────
+  // ── 右键菜单 ──────────────────────────────────────────────
   contextMenu: {
     show: (type: 'file' | 'editor', data: Record<string, string>) =>
       ipcRenderer.invoke('contextMenu:show', type, data),
-  },
-
-  // ── 版本历史 ──────────────────────────────────────────────
-  history: {
-    save: (filePath: string, content: string) =>
-      ipcRenderer.invoke('history:save', filePath, content),
-    list: (filePath: string) =>
-      ipcRenderer.invoke('history:list', filePath),
-    get: (filePath: string, versionId: string) =>
-      ipcRenderer.invoke('history:get', filePath, versionId),
-    restore: (filePath: string, versionId: string) =>
-      ipcRenderer.invoke('history:restore', filePath, versionId),
   },
 
   // ── 窗口控制 ──────────────────────────────────────────────

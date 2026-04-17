@@ -5,16 +5,18 @@ import {
   EditorSettings,
   AppearanceSettings,
   ShortcutsSettings,
+  GuideSettings,
 } from './sections/index';
 import styles from './SettingsPanel.module.css';
 
-type Section = 'general' | 'editor' | 'appearance' | 'shortcuts';
+type Section = 'general' | 'editor' | 'appearance' | 'shortcuts' | 'guide';
 
 const NAV_ITEMS: Array<{ id: Section; label: string; icon: string }> = [
-  { id: 'general',    label: '通用',   icon: '⚙' },
-  { id: 'editor',     label: '编辑器', icon: '✏' },
-  { id: 'appearance', label: '外观',   icon: '🎨' },
-  { id: 'shortcuts',  label: '快捷键', icon: '⌨' },
+  { id: 'general',    label: '通用',     icon: '⚙' },
+  { id: 'editor',     label: '编辑器',   icon: '✏' },
+  { id: 'appearance', label: '外观',     icon: '🎨' },
+  { id: 'shortcuts',  label: '快捷键',   icon: '⌨' },
+  { id: 'guide',      label: '使用说明', icon: '📖' },
 ];
 
 const SECTION_MAP: Record<Section, React.ReactNode> = {
@@ -22,6 +24,7 @@ const SECTION_MAP: Record<Section, React.ReactNode> = {
   editor:     <EditorSettings />,
   appearance: <AppearanceSettings />,
   shortcuts:  <ShortcutsSettings />,
+  guide:      <GuideSettings />,
 };
 
 export function SettingsPanel() {
@@ -29,7 +32,6 @@ export function SettingsPanel() {
   const { closeSettings } = useUIActions();
   const [activeSection, setActiveSection] = useState<Section>('general');
 
-  // Escape 关闭
   useEffect(() => {
     if (!settingsOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -44,7 +46,6 @@ export function SettingsPanel() {
   return (
     <div className={styles.overlay} onClick={closeSettings}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
-        {/* 左侧导航 */}
         <nav className={styles.nav}>
           <div className={styles.navTitle}>设置</div>
           {NAV_ITEMS.map(({ id, label, icon }) => (
@@ -59,7 +60,6 @@ export function SettingsPanel() {
           ))}
         </nav>
 
-        {/* 右侧内容 */}
         <div className={styles.content}>
           <button className={styles.closeBtn} onClick={closeSettings} title="关闭 (Esc)">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">

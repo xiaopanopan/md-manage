@@ -119,3 +119,15 @@
 
 /* ── highlight.js 主题覆盖 ─────────────────────────────────── */
 .dz-reader .hljs { background: transparent; }
+
+/* ── 暗色模式覆盖 ─────────────────────────────────────────── */
+[data-theme="dark"] .dz-reader a {
+  color: #6cb6ff;
+  border-bottom-color: rgba(108, 182, 255, 0.2);
+}
+[data-theme="dark"] .dz-reader a:hover {
+  border-bottom-color: #6cb6ff;
+}
+[data-theme="dark"] .dz-reader :not(pre) > code {
+  background: rgba(255, 255, 255, 0.08);
+}

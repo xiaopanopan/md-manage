@@ -8,7 +8,6 @@ import {
   useWorkspace,
 } from '@/hooks/useAppStore';
 import { EditorCore } from './EditorCore';
-import { FileInfoBar } from './FileInfoBar';
 import styles from './EditorArea.module.css';
 
 export function EditorArea() {
@@ -20,18 +19,14 @@ export function EditorArea() {
   const setContent = useAppStore((s) => s.setContent);
   const markSaved = useAppStore((s) => s.markSaved);
 
-  // 判断当前深色模式
   const isDark = useMemo(() => {
     if (theme === 'dark') return true;
     if (theme === 'light') return false;
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   }, [theme]);
 
-  // ── 回调：更新内容 ───────────────────────────────────────
   const handleContentChange = useCallback(
-    (newContent: string) => {
-      setContent(newContent);
-    },
+    (newContent: string) => setContent(newContent),
     [setContent]
   );
 
@@ -40,18 +35,15 @@ export function EditorArea() {
 
   useEffect(() => {
     if (!currentFile || !isDirty) return;
-
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       try {
         await window.electronAPI?.file.write(currentFile, currentContent);
-        window.electronAPI?.history.save(currentFile, currentContent).catch(() => {});
         markSaved();
       } catch (err) {
         console.error('[EditorArea] auto-save failed:', err);
       }
     }, 2000);
-
     return () => clearTimeout(saveTimerRef.current);
   }, [isDirty, currentContent, currentFile, markSaved]);
 
@@ -65,7 +57,6 @@ export function EditorArea() {
         (async () => {
           try {
             await window.electronAPI?.file.write(currentFile, currentContent);
-            window.electronAPI?.history.save(currentFile, currentContent).catch(() => {});
             markSaved();
           } catch (err) {
             console.error('[EditorArea] manual save failed:', err);
@@ -77,7 +68,6 @@ export function EditorArea() {
     return () => window.removeEventListener('keydown', onKey);
   }, [currentFile, isDirty, currentContent, markSaved]);
 
-  // ── 空状态 ────────────────────────────────────────────────
   if (!currentFile) {
     return (
       <div className={styles.area}>
@@ -100,7 +90,6 @@ export function EditorArea() {
           />
         </div>
       </div>
-      <FileInfoBar content={currentContent} isDirty={isDirty} />
     </div>
   );
 }

@@ -174,15 +174,13 @@ export function AppearanceSettings() {
 }
 
 const SHORTCUTS: Array<[string, string]> = [
-  ['新建文件', '⌘ N'],
-  ['打开工作区', '⌘ O'],
   ['保存', '⌘ S'],
+  ['加粗', '⌘ B'],
+  ['斜体', '⌘ I'],
+  ['插入链接', '⌘ K'],
+  ['查找替换', '⌘ F / ⌘ H'],
   ['切换编辑/阅读', '⌘ E'],
-  ['快速搜索', '⌘ P'],
   ['打开设置', '⌘ ,'],
-  ['导出', '⌘ ⇧ E'],
-  ['切换侧边栏', '⌘ \\'],
-  ['版本历史', '⌘ ⇧ H'],
 ];
 
 export function ShortcutsSettings() {
@@ -201,6 +199,64 @@ export function ShortcutsSettings() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+export function GuideSettings() {
+  return (
+    <div>
+      <h2 className={styles.sectionTitle}>使用说明</h2>
+
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 'var(--text-sm)', lineHeight: '1.8', color: 'var(--color-gray-800)' }}>
+        <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, margin: '16px 0 8px' }}>基本操作</h3>
+        <ol style={{ paddingLeft: '1.2em', margin: '0 0 12px' }}>
+          <li>点击侧边栏工具栏的文件夹图标选择工作区目录</li>
+          <li>点击 <strong>+</strong> 按钮创建新文件，点击文件夹+按钮创建文件夹</li>
+          <li>单击文件打开编辑，右键查看更多操作（重命名、删除、移至归档）</li>
+          <li>编辑后 2 秒自动保存，或按 <span className="kbd">⌘ S</span> 立即保存</li>
+          <li>顶部 <strong>READ / EDIT</strong> 按钮切换阅读和编辑模式</li>
+        </ol>
+
+        <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, margin: '16px 0 8px' }}>快捷键</h3>
+        <table className={styles.shortcutsTable}>
+          <tbody>
+            <tr><td>保存</td><td><span className="kbd">⌘ S</span></td></tr>
+            <tr><td>加粗</td><td><span className="kbd">⌘ B</span></td></tr>
+            <tr><td>斜体</td><td><span className="kbd">⌘ I</span></td></tr>
+            <tr><td>插入链接</td><td><span className="kbd">⌘ K</span></td></tr>
+            <tr><td>查找 / 替换</td><td><span className="kbd">⌘ F</span> / <span className="kbd">⌘ H</span></td></tr>
+            <tr><td>切换模式</td><td><span className="kbd">⌘ E</span></td></tr>
+            <tr><td>打开设置</td><td><span className="kbd">⌘ ,</span></td></tr>
+          </tbody>
+        </table>
+
+        <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, margin: '16px 0 8px' }}>Markdown 语法</h3>
+        <table className={styles.shortcutsTable}>
+          <tbody>
+            <tr><td><code># 标题</code></td><td>一级标题（# ~ ######）</td></tr>
+            <tr><td><code>**粗体**</code></td><td><strong>粗体文字</strong></td></tr>
+            <tr><td><code>*斜体*</code></td><td><em>斜体文字</em></td></tr>
+            <tr><td><code>[文字](url)</code></td><td>链接</td></tr>
+            <tr><td><code>![](path)</code></td><td>图片（支持粘贴/拖拽）</td></tr>
+            <tr><td><code>`代码`</code></td><td>行内代码</td></tr>
+            <tr><td><code>&gt; 引用</code></td><td>引用块</td></tr>
+            <tr><td><code>- 列表</code></td><td>无序列表</td></tr>
+            <tr><td><code>1. 列表</code></td><td>有序列表</td></tr>
+            <tr><td><code>- [ ] 任务</code></td><td>任务列表</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, margin: '16px 0 8px' }}>主题</h3>
+        <p style={{ margin: '0 0 12px' }}>
+          点击侧边栏工具栏的太阳/月亮图标切换主题（浅色 → 深色 → 跟随系统）。
+        </p>
+
+        <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, margin: '16px 0 8px' }}>导出</h3>
+        <p style={{ margin: 0 }}>
+          切换到阅读模式（READ）后，底部可选择导出为 PDF 或 HTML 文件。
+        </p>
+      </div>
     </div>
   );
 }
