@@ -1,0 +1,59 @@
+/* ============================================================
+   Digital Zen — Dark Theme Deep Overrides
+   补充 variables.css [data-theme="dark"] 无法覆盖的组件细节
+   ============================================================ */
+
+/* ── 代码高亮（highlight.js 暗色覆盖）──────────────────────── */
+[data-theme="dark"] .hljs {
+  background: transparent;
+  color: #c9d1d9;
+}
+[data-theme="dark"] .hljs-keyword { color: #ff7b72; }
+[data-theme="dark"] .hljs-string  { color: #a5d6ff; }
+[data-theme="dark"] .hljs-comment { color: #8b949e; }
+[data-theme="dark"] .hljs-number  { color: #79c0ff; }
+[data-theme="dark"] .hljs-title   { color: #d2a8ff; }
+[data-theme="dark"] .hljs-built_in { color: #ffa657; }
+[data-theme="dark"] .hljs-literal { color: #79c0ff; }
+[data-theme="dark"] .hljs-attr    { color: #79c0ff; }
+[data-theme="dark"] .hljs-selector-class { color: #7ee787; }
+
+/* ── 阅读模式暗色 ─────────────────────────────────────────── */
+[data-theme="dark"] .dz-reader a {
+  color: #6cb6ff;
+  border-bottom-color: rgba(108, 182, 255, 0.2);
+}
+[data-theme="dark"] .dz-reader a:hover {
+  border-bottom-color: #6cb6ff;
+}
+[data-theme="dark"] .dz-reader blockquote {
+  border-left-color: var(--color-gray-500);
+  color: var(--color-gray-500);
+}
+[data-theme="dark"] .dz-reader h2 {
+  border-bottom-color: var(--border-light);
+}
+
+/* ── 搜索弹窗暗色覆盖 ─────────────────────────────────────── */
+[data-theme="dark"] mark {
+  background: rgba(255, 200, 0, 0.2);
+}
+
+/* ── 滚动条暗色 ────────────────────────────────────────────── */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── 选区颜色 ──────────────────────────────────────────────── */
+[data-theme="dark"] ::selection {
+  background: rgba(108, 182, 255, 0.25);
+}
+
+/* ── 输入框 placeholder 暗色 ────────────────────────────────── */
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--color-gray-500);
+}

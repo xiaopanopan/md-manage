@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+          ELECTRON_MIRROR: https://npmmirror.com/mirrors/electron/
+
+      - name: TypeScript check (renderer)
+        run: pnpm exec tsc --noEmit
+
+      - name: TypeScript check (electron)
+        run: pnpm exec tsc --noEmit -p tsconfig.electron.json
+
+      - name: Unit tests
+        run: pnpm exec vitest run --reporter=verbose
+
+      - name: Build renderer
+        run: pnpm run build:renderer

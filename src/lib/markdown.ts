@@ -7,7 +7,8 @@ import rehypeSanitize from 'rehype-sanitize';
 import rehypeStringify from 'rehype-stringify';
 import { visit } from 'unist-util-visit';
 import { defaultSchema } from 'rehype-sanitize';
-import type { Root, Element } from 'hast';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyNode = any;
 
 // 允许 file:// 协议图片和 class 属性（代码高亮需要）
 const sanitizeSchema = {
@@ -22,8 +23,8 @@ const sanitizeSchema = {
 
 /** 自定义 rehype 插件：将相对图片路径转为 file:// 协议 */
 function rehypeFixImagePaths(workspace: string) {
-  return (tree: Root) => {
-    visit(tree, 'element', (node: Element) => {
+  return (tree: AnyNode) => {
+    visit(tree, 'element', (node: AnyNode) => {
       if (node.tagName === 'img' && node.properties?.src) {
         const src = node.properties.src as string;
         if (!src.startsWith('http') && !src.startsWith('file://') && !src.startsWith('data:')) {

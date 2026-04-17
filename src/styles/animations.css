@@ -1,0 +1,33 @@
+/* ============================================================
+   Digital Zen — Global Transitions & Animations
+   ============================================================ */
+
+/* 主题切换时给所有元素加过渡（由 JS 添加 .theme-transitioning） */
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    opacity 200ms ease !important;
+}
+
+/* ── 侧边栏展开/收起 ──────────────────────────────────────── */
+@keyframes sidebarSlideIn {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* ── 模式切换内容淡入 ──────────────────────────────────────── */
+@keyframes contentFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 编辑器/阅读器切换时的淡入动画 */
+.mode-enter {
+  animation: contentFadeIn 200ms ease;
+}

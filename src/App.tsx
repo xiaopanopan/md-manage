@@ -17,10 +17,20 @@ import { MarkdownRenderer } from '@/components/reader/MarkdownRenderer';
 import { SearchModal } from '@/components/search/SearchModal';
 import { HistoryPanel } from '@/components/history/HistoryPanel';
 
-// 主题应用到 <html> 的 data-theme 属性
+// 主题应用到 <html> 的 data-theme 属性（带平滑过渡）
 function applyTheme(theme: Theme, systemDark: boolean) {
   const resolved = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
-  document.documentElement.setAttribute('data-theme', resolved);
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme');
+  if (current && current !== resolved) {
+    root.classList.add('theme-transitioning');
+    requestAnimationFrame(() => {
+      root.setAttribute('data-theme', resolved);
+      setTimeout(() => root.classList.remove('theme-transitioning'), 250);
+    });
+  } else {
+    root.setAttribute('data-theme', resolved);
+  }
 }
 
 export default function App() {

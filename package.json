@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "description": "A minimalist Markdown desktop editor",
   "main": "dist/main/main.js",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  },
   "scripts": {
     "dev": "vite",
     "dev:renderer": "vite",
@@ -44,6 +50,7 @@
     "@codemirror/language-data": "^6.5.2",
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.41.0",
+    "@lezer/highlight": "^1.2.3",
     "chokidar": "^5.0.0",
     "diff": "^9.0.0",
     "fuse.js": "^7.3.0",
