@@ -61,8 +61,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('contextMenu:show', type, data),
   },
 
-  // ── 版本历史（由 Agent 6 / Skill 15 实现处理器）──────────
+  // ── 版本历史 ──────────────────────────────────────────────
   history: {
+    save: (filePath: string, content: string) =>
+      ipcRenderer.invoke('history:save', filePath, content),
     list: (filePath: string) =>
       ipcRenderer.invoke('history:list', filePath),
     get: (filePath: string, versionId: string) =>

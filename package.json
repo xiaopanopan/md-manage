@@ -23,6 +23,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/diff": "^7.0.2",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
@@ -44,6 +45,8 @@
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.41.0",
     "chokidar": "^5.0.0",
+    "diff": "^9.0.0",
+    "fuse.js": "^7.3.0",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
     "immer": "^10.0.0",

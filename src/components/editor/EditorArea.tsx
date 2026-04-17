@@ -75,6 +75,8 @@ export function EditorArea() {
     saveTimerRef.current = setTimeout(async () => {
       try {
         await window.electronAPI?.file.write(currentFile, currentContent);
+        // 保存后触发版本快照（IPC 内部有 60s 频率限制）
+        window.electronAPI?.history.save(currentFile, currentContent).catch(() => {});
         markSaved();
       } catch (err) {
         console.error('[EditorArea] auto-save failed:', err);

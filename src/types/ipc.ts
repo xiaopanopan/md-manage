@@ -46,6 +46,7 @@ export interface MenuAction {
 }
 
 export interface HistoryAPI {
+  save(filePath: string, content: string): Promise<void>;
   list(filePath: string): Promise<Version[]>;
   get(filePath: string, versionId: string): Promise<string>;
   restore(filePath: string, versionId: string): Promise<void>;
