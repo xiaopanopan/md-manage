@@ -1,0 +1,14 @@
+/* ── RenameDialog ────────────────────────────────────────── */
+.input {
+  width: 100%;
+  height: 24px;
+  padding: 0 6px;
+  font-family: var(--font-code);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: var(--bg-white);
+  border: 1px solid var(--color-black);
+  border-radius: var(--radius-sm);
+  outline: none;
+  user-select: text;
+}

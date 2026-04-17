@@ -1,0 +1,6 @@
+/* ── EditorCore ──────────────────────────────────────────── */
+.wrapper {
+  flex: 1;
+  user-select: text;
+  cursor: text;
+}

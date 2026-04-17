@@ -1,0 +1,30 @@
+/* ── CurrentFileInfo ─────────────────────────────────────── */
+.panel {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-light);
+  padding: 10px 12px;
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+.filename {
+  font-family: var(--font-code);
+  font-size: var(--text-xs);
+  color: var(--color-gray-800);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.meta {
+  display: flex;
+  gap: 12px;
+}
+
+.metaItem {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}

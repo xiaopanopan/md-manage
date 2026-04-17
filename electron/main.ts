@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
 import { registerFileSystemHandlers, startWatcher } from './ipc/fileSystem';
 import { registerConfigHandlers, getConfig } from './ipc/config';
+import { registerContextMenuHandlers } from './ipc/contextMenu';
 import { registerWindowHandlers } from './ipc/window';
 import { registerImportHandlers } from './ipc/import';
 import { getWindowState, saveWindowState } from './windowState';
@@ -60,6 +61,7 @@ function createWindow() {
 app.whenReady().then(() => {
   registerConfigHandlers();
   registerFileSystemHandlers();
+  registerContextMenuHandlers();
   registerWindowHandlers();
   registerImportHandlers();
 

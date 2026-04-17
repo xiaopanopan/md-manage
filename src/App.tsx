@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import { useAppStore } from '@/stores/appStore';
+import { useUIActions, useSidebarVisible, useSettingsOpen } from '@/hooks/useAppStore';
 import type { Theme } from '@/types/state';
+import { Sidebar } from '@/components/sidebar/Sidebar';
+import { SettingsPanel } from '@/components/settings/SettingsPanel';
+import { EditorArea } from '@/components/editor/EditorArea';
 
 // 主题应用到 <html> 的 data-theme 属性
 function applyTheme(theme: Theme, systemDark: boolean) {
@@ -13,6 +17,9 @@ export default function App() {
   const workspace = useAppStore((s) => s.workspace);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const setFiles = useAppStore((s) => s.setFiles);
+  const sidebarVisible = useSidebarVisible();
+  const settingsOpen = useSettingsOpen();
+  const { openSettings } = useUIActions();
 
   // 监听系统深色模式
   useEffect(() => {
@@ -43,7 +50,7 @@ export default function App() {
       }
     }
     restoreWorkspace();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 监听文件变更（主进程 chokidar 推送）
@@ -62,11 +69,30 @@ export default function App() {
     return unsubscribe;
   }, [workspace, setFiles]);
 
+  // 全局快捷键
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      // Cmd+, → 打开设置
+      if (mod && e.key === ',') {
+        e.preventDefault();
+        openSettings();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [openSettings]);
+
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)' }}>
-      <p style={{ color: 'var(--color-black)', opacity: 0.4, fontSize: 'var(--text-sm)' }}>
-        Digital Zen — Architecture skeleton ready
-      </p>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+      {/* 侧边栏 */}
+      {sidebarVisible && <Sidebar />}
+
+      {/* 编辑器主区域 */}
+      <EditorArea />
+
+      {/* 设置面板（全屏遮罩） */}
+      {settingsOpen && <SettingsPanel />}
     </div>
   );
 }

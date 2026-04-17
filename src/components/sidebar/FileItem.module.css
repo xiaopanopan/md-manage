@@ -1,0 +1,49 @@
+/* ── FileItem ──────────────────────────────────────────────── */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 8px 0 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-code);
+  font-size: var(--text-sm);
+  color: var(--color-gray-800);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  user-select: none;
+  overflow: hidden;
+}
+
+.item:hover {
+  background: var(--bg-hover);
+}
+
+.item.active {
+  background: var(--color-black);
+  color: var(--bg-white);
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 14px;
+  opacity: 0.6;
+}
+
+.item.active .icon {
+  opacity: 1;
+}
+
+.name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 36px;
+}
+
+.renameWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
