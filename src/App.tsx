@@ -1,10 +1,19 @@
 import { useEffect } from 'react';
 import { useAppStore } from '@/stores/appStore';
-import { useUIActions, useSidebarVisible, useSettingsOpen } from '@/hooks/useAppStore';
+import {
+  useUIActions,
+  useSidebarVisible,
+  useSettingsOpen,
+  useViewMode,
+  useCurrentFile,
+  useCurrentContent,
+  useIsDirty,
+} from '@/hooks/useAppStore';
 import type { Theme } from '@/types/state';
 import { Sidebar } from '@/components/sidebar/Sidebar';
 import { SettingsPanel } from '@/components/settings/SettingsPanel';
 import { EditorArea } from '@/components/editor/EditorArea';
+import { MarkdownRenderer } from '@/components/reader/MarkdownRenderer';
 
 // 主题应用到 <html> 的 data-theme 属性
 function applyTheme(theme: Theme, systemDark: boolean) {
@@ -19,7 +28,12 @@ export default function App() {
   const setFiles = useAppStore((s) => s.setFiles);
   const sidebarVisible = useSidebarVisible();
   const settingsOpen = useSettingsOpen();
-  const { openSettings } = useUIActions();
+  const viewMode = useViewMode();
+  const currentFile = useCurrentFile();
+  const currentContent = useCurrentContent();
+  const isDirty = useIsDirty();
+  const { openSettings, switchMode } = useUIActions();
+  const markSaved = useAppStore((s) => s.markSaved);
 
   // 监听系统深色模式
   useEffect(() => {
@@ -71,25 +85,51 @@ export default function App() {
 
   // 全局快捷键
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
+    const onKeyDown = async (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
+
       // Cmd+, → 打开设置
       if (mod && e.key === ',') {
         e.preventDefault();
         openSettings();
+        return;
+      }
+
+      // Cmd+E → 切换 READ/EDIT 模式
+      if (mod && e.key === 'e') {
+        e.preventDefault();
+        if (!currentFile) return;
+        // 切换到阅读模式前先保存
+        if (viewMode === 'edit' && isDirty) {
+          try {
+            await window.electronAPI?.file.write(currentFile, currentContent);
+            markSaved();
+          } catch (err) {
+            console.error('[App] save before mode switch failed:', err);
+          }
+        }
+        switchMode(viewMode === 'edit' ? 'read' : 'edit');
+        return;
+      }
+
+      // Cmd+Shift+E → 导出（在阅读模式下触发 PDF 导出）
+      if (mod && e.shiftKey && e.key === 'E') {
+        e.preventDefault();
+        // ExportBar 内部处理
+        return;
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [openSettings]);
+  }, [openSettings, switchMode, viewMode, currentFile, currentContent, isDirty, markSaved]);
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       {/* 侧边栏 */}
       {sidebarVisible && <Sidebar />}
 
-      {/* 编辑器主区域 */}
-      <EditorArea />
+      {/* 主内容区：按模式切换编辑器/阅读器 */}
+      {viewMode === 'edit' ? <EditorArea /> : <MarkdownRenderer />}
 
       {/* 设置面板（全屏遮罩） */}
       {settingsOpen && <SettingsPanel />}

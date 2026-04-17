@@ -1,0 +1,32 @@
+/* ── MarkdownRenderer ────────────────────────────────────── */
+.area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-white);
+}
+
+.dragArea {
+  height: 52px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  color: var(--color-gray-300);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+}
