@@ -1,7 +1,9 @@
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'path';
-import { registerFileSystemHandlers } from './ipc/fileSystem';
-import { registerConfigHandlers } from './ipc/config';
+import { registerFileSystemHandlers, startWatcher } from './ipc/fileSystem';
+import { registerConfigHandlers, getConfig } from './ipc/config';
+import { registerWindowHandlers } from './ipc/window';
+import { registerImportHandlers } from './ipc/import';
 import { getWindowState, saveWindowState } from './windowState';
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -36,7 +38,8 @@ function createWindow() {
 
   // 加载页面
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    const devServerUrl = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5173';
+    mainWindow.loadURL(devServerUrl);
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
@@ -55,10 +58,18 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  registerFileSystemHandlers();
   registerConfigHandlers();
+  registerFileSystemHandlers();
+  registerWindowHandlers();
+  registerImportHandlers();
 
   createWindow();
+
+  // 恢复上次工作区的文件监听
+  const savedWorkspace = getConfig('workspace') as string | null;
+  if (savedWorkspace) {
+    startWatcher(savedWorkspace);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

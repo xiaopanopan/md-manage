@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 // 暴露给渲染进程的 API（白名单模式）
 contextBridge.exposeInMainWorld('electronAPI', {
-  // 文件系统
+  // ── 文件系统 ─────────────────────────────────────────────
   file: {
     read: (filePath: string) =>
       ipcRenderer.invoke('file:read', filePath),
@@ -18,22 +18,74 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('file:create', dir, name),
   },
 
-  // 工作区
+  // ── 工作区 ────────────────────────────────────────────────
   workspace: {
     open: () => ipcRenderer.invoke('workspace:open'),
     get: () => ipcRenderer.invoke('workspace:get'),
     init: (workspacePath: string) => ipcRenderer.invoke('workspace:init', workspacePath),
   },
 
-  // 配置
+  // ── 配置 ──────────────────────────────────────────────────
   config: {
     get: (key?: string) => ipcRenderer.invoke('config:get', key),
     set: (key: string, value: unknown) => ipcRenderer.invoke('config:set', key, value),
   },
 
-  // 文件变更事件（主进程推送）
+  // ── 图片 ──────────────────────────────────────────────────
+  image: {
+    save: (buffer: number[], ext: string) =>
+      ipcRenderer.invoke('image:save', buffer, ext),
+    getAbsPath: (relativePath: string) =>
+      ipcRenderer.invoke('image:getAbsPath', relativePath),
+  },
+
+  // ── 导出 ──────────────────────────────────────────────────
+  export: {
+    pdf: (htmlContent: string) =>
+      ipcRenderer.invoke('export:pdf', htmlContent),
+    html: (markdownContent: string) =>
+      ipcRenderer.invoke('export:html', markdownContent),
+  },
+
+  // ── 导入 ──────────────────────────────────────────────────
+  import: {
+    files: (destDir?: string) => ipcRenderer.invoke('import:files', destDir),
+    folder: (destDir?: string) => ipcRenderer.invoke('import:folder', destDir),
+    drop: (srcPaths: string[], destDir: string) =>
+      ipcRenderer.invoke('import:drop', srcPaths, destDir),
+  },
+
+  // ── 右键菜单（由 Agent 3 实现具体菜单内容）────────────────
+  contextMenu: {
+    show: (type: 'file' | 'editor', data: Record<string, string>) =>
+      ipcRenderer.invoke('contextMenu:show', type, data),
+  },
+
+  // ── 版本历史（由 Agent 6 / Skill 15 实现处理器）──────────
+  history: {
+    list: (filePath: string) =>
+      ipcRenderer.invoke('history:list', filePath),
+    get: (filePath: string, versionId: string) =>
+      ipcRenderer.invoke('history:get', filePath, versionId),
+    restore: (filePath: string, versionId: string) =>
+      ipcRenderer.invoke('history:restore', filePath, versionId),
+  },
+
+  // ── 窗口控制 ──────────────────────────────────────────────
+  window: {
+    minimize: () => ipcRenderer.invoke('window:minimize'),
+    maximize: () => ipcRenderer.invoke('window:maximize'),
+    close: () => ipcRenderer.invoke('window:close'),
+    setFullscreen: (flag: boolean) => ipcRenderer.invoke('window:setFullscreen', flag),
+    isFullscreen: () => ipcRenderer.invoke('window:isFullscreen'),
+    isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+  },
+
+  // ── 主进程推送事件 ────────────────────────────────────────
   onFileChanged: (callback: (info: unknown) => void) => {
-    ipcRenderer.on('file:changed', (_event, info) => callback(info));
-    return () => ipcRenderer.removeAllListeners('file:changed');
+    const handler = (_event: Electron.IpcRendererEvent, info: unknown) =>
+      callback(info);
+    ipcRenderer.on('file:changed', handler);
+    return () => ipcRenderer.removeListener('file:changed', handler);
   },
 });

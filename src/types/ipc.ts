@@ -46,14 +46,31 @@ export interface HistoryAPI {
   restore(filePath: string, versionId: string): Promise<void>;
 }
 
+export interface ImportAPI {
+  files(destDir?: string): Promise<string[]>;
+  folder(destDir?: string): Promise<string[]>;
+  drop(srcPaths: string[], destDir: string): Promise<string[]>;
+}
+
+export interface WindowAPI {
+  minimize(): Promise<void>;
+  maximize(): Promise<void>;
+  close(): Promise<void>;
+  setFullscreen(flag: boolean): Promise<void>;
+  isFullscreen(): Promise<boolean>;
+  isMaximized(): Promise<boolean>;
+}
+
 export interface ElectronAPI {
   file: FileAPI;
   workspace: WorkspaceAPI;
   config: ConfigAPI;
   image: ImageAPI;
   export: ExportAPI;
+  import: ImportAPI;
   contextMenu: ContextMenuAPI;
   history: HistoryAPI;
+  window: WindowAPI;
   onFileChanged(callback: (info: unknown) => void): () => void;
 }
 
