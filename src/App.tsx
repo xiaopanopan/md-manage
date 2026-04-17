@@ -4,6 +4,7 @@ import { useUIActions, useSidebarVisible, useSettingsOpen } from '@/hooks/useApp
 import type { Theme } from '@/types/state';
 import { Sidebar } from '@/components/sidebar/Sidebar';
 import { SettingsPanel } from '@/components/settings/SettingsPanel';
+import { EditorArea } from '@/components/editor/EditorArea';
 
 // 主题应用到 <html> 的 data-theme 属性
 function applyTheme(theme: Theme, systemDark: boolean) {
@@ -87,27 +88,8 @@ export default function App() {
       {/* 侧边栏 */}
       {sidebarVisible && <Sidebar />}
 
-      {/* 主内容区（暂时占位，由后续 Agent 填充编辑器/阅读器） */}
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--bg-white)',
-          overflow: 'hidden',
-        }}
-      >
-        <p
-          style={{
-            color: 'var(--color-gray-300)',
-            fontSize: 'var(--text-sm)',
-            fontFamily: 'var(--font-ui)',
-          }}
-        >
-          {workspace ? '选择左侧文件开始编辑' : '请先选择工作区'}
-        </p>
-      </main>
+      {/* 编辑器主区域 */}
+      <EditorArea />
 
       {/* 设置面板（全屏遮罩） */}
       {settingsOpen && <SettingsPanel />}

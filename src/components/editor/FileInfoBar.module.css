@@ -1,0 +1,31 @@
+/* ── FileInfoBar ─────────────────────────────────────────── */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 32px;
+  padding: 0 24px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-light);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+.separator {
+  width: 1px;
+  height: 12px;
+  background: var(--border-light);
+}
+
+.saveStatus {
+  margin-left: auto;
+}
+
+.saved {
+  color: var(--color-gray-300);
+}
+
+.dirty {
+  color: var(--color-gray-500);
+}

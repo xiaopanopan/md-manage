@@ -1,0 +1,46 @@
+/* ── EditorArea ──────────────────────────────────────────── */
+.area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-white);
+}
+
+/* macOS 顶部拖拽区 */
+.dragArea {
+  height: 52px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.content {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 24px 120px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 12px 0 16px;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  color: var(--color-gray-300);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+}
