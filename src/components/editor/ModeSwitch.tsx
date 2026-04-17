@@ -30,14 +30,14 @@ export function ModeSwitch() {
       <button
         className={`${styles.btn} ${viewMode === 'read' ? styles.active : ''} ${disabled ? styles.disabled : ''}`}
         onClick={() => handleSwitch('read')}
-        title="阅读模式 (⌘E)"
+        data-tooltip="阅读模式 (⌘E)"
       >
         Read
       </button>
       <button
         className={`${styles.btn} ${viewMode === 'edit' ? styles.active : ''} ${disabled ? styles.disabled : ''}`}
         onClick={() => handleSwitch('edit')}
-        title="编辑模式 (⌘E)"
+        data-tooltip="编辑模式 (⌘E)"
       >
         Edit
       </button>

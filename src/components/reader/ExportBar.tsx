@@ -28,13 +28,13 @@ export function ExportBar() {
 
   return (
     <div className={styles.bar}>
-      <button className={styles.btn} onClick={handleExportPdf} title="导出 PDF (Cmd+Shift+E)">
+      <button className={styles.btn} onClick={handleExportPdf} data-tooltip="导出为 PDF 文件">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M4 14h8M8 2v9M5 8l3 3 3-3" />
         </svg>
         PDF
       </button>
-      <button className={styles.btn} onClick={handleExportHtml} title="导出 HTML">
+      <button className={styles.btn} onClick={handleExportHtml} data-tooltip="导出为 HTML 文件">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M4 14h8M8 2v9M5 8l3 3 3-3" />
         </svg>

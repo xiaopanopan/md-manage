@@ -45,6 +45,7 @@
 }
 
 .iconBtn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,6 +61,34 @@
 .iconBtn:hover {
   background: var(--bg-hover);
   color: var(--color-black);
+}
+
+/* CSS Tooltip（图标上方显示） */
+.iconBtn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--bg-white);
+  background: var(--color-black);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 9999;
+}
+
+.iconBtn:hover::after {
+  opacity: 1;
 }
 
 /* 文件列表滚动区 */

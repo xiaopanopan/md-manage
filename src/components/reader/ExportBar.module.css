@@ -11,6 +11,7 @@
 }
 
 .btn {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -27,4 +28,27 @@
 .btn:hover {
   background: var(--bg-hover);
   color: var(--color-black);
+}
+
+.btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--bg-white);
+  background: var(--color-black);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 9999;
+}
+
+.btn:hover::after {
+  opacity: 1;
 }

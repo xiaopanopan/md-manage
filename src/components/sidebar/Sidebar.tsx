@@ -206,14 +206,14 @@ export function Sidebar() {
         <div className={styles.toolbarActions}>
           <button
             className={styles.iconBtn}
-            title={`切换主题 (当前: ${themeLabel})`}
+            data-tooltip={`切换主题 (${themeLabel})`}
             onClick={handleThemeToggle}
           >
             {themeIcon}
           </button>
           <button
             className={styles.iconBtn}
-            title="新建文件"
+            data-tooltip="新建文件"
             onClick={handleNewFile}
             disabled={!workspace}
           >
@@ -221,7 +221,7 @@ export function Sidebar() {
           </button>
           <button
             className={styles.iconBtn}
-            title="新建文件夹"
+            data-tooltip="新建文件夹"
             onClick={handleNewFolder}
             disabled={!workspace}
           >
@@ -229,7 +229,7 @@ export function Sidebar() {
           </button>
           <button
             className={styles.iconBtn}
-            title="打开工作区"
+            data-tooltip="打开工作区"
             onClick={handleOpenWorkspace}
           >
             <OpenFolderIcon />
