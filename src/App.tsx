@@ -14,6 +14,7 @@ import { Sidebar } from '@/components/sidebar/Sidebar';
 import { SettingsPanel } from '@/components/settings/SettingsPanel';
 import { EditorArea } from '@/components/editor/EditorArea';
 import { MarkdownRenderer } from '@/components/reader/MarkdownRenderer';
+import { ModeSwitch } from '@/components/editor/ModeSwitch';
 import { SearchModal } from '@/components/search/SearchModal';
 import { HistoryPanel } from '@/components/history/HistoryPanel';
 
@@ -156,8 +157,14 @@ export default function App() {
       {/* 侧边栏 */}
       {sidebarVisible && <Sidebar />}
 
-      {/* 主内容区：按模式切换编辑器/阅读器 */}
-      {viewMode === 'edit' ? <EditorArea /> : <MarkdownRenderer />}
+      {/* 主内容区 */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* 顶部 READ/EDIT 切换按钮 */}
+        <ModeSwitch />
+
+        {/* 编辑器 / 阅读器 */}
+        {viewMode === 'edit' ? <EditorArea /> : <MarkdownRenderer />}
+      </div>
 
       {/* 设置面板（全屏遮罩） */}
       {settingsOpen && <SettingsPanel />}

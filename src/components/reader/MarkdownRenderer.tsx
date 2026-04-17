@@ -56,7 +56,6 @@ export function MarkdownRenderer() {
   if (!currentFile) {
     return (
       <div className={styles.area}>
-        <div className={styles.dragArea} />
         <div className={styles.empty}>选择文件以阅读</div>
       </div>
     );
@@ -64,7 +63,6 @@ export function MarkdownRenderer() {
 
   return (
     <div className={styles.area}>
-      <div className={styles.dragArea} />
       <div className={styles.scroll}>
         <div ref={contentRef} className="dz-reader" onClick={handleClick}>
           {title && <h1>{title}</h1>}

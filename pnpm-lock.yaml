@@ -85,7 +85,7 @@ importers:
         version: 4.5.7(@types/react@18.3.28)(immer@10.2.0)(react@18.3.1)
     devDependencies:
       '@types/diff':
-        specifier: ^7.0.2
+        specifier: ^7.0.0
         version: 7.0.2
       '@types/node':
         specifier: ^20.0.0

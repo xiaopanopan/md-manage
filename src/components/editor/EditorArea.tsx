@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/stores/appStore';
 import {
   useCurrentFile,
@@ -7,10 +7,7 @@ import {
   useTheme,
   useWorkspace,
 } from '@/hooks/useAppStore';
-import { parseFrontMatter, stringifyFrontMatter } from '@/lib/frontmatter';
 import { EditorCore } from './EditorCore';
-import { TitleInput } from './TitleInput';
-import { TagEditor } from './TagEditor';
 import { FileInfoBar } from './FileInfoBar';
 import styles from './EditorArea.module.css';
 
@@ -23,12 +20,6 @@ export function EditorArea() {
   const setContent = useAppStore((s) => s.setContent);
   const markSaved = useAppStore((s) => s.markSaved);
 
-  // 解析 front matter
-  const { data: frontmatter, body } = useMemo(
-    () => parseFrontMatter(currentContent),
-    [currentContent]
-  );
-
   // 判断当前深色模式
   const isDark = useMemo(() => {
     if (theme === 'dark') return true;
@@ -36,33 +27,12 @@ export function EditorArea() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   }, [theme]);
 
-  // ── 回调：更新 body ──────────────────────────────────────
-  const handleBodyChange = useCallback(
-    (newBody: string) => {
-      const full = stringifyFrontMatter(frontmatter, newBody);
-      setContent(full);
+  // ── 回调：更新内容 ───────────────────────────────────────
+  const handleContentChange = useCallback(
+    (newContent: string) => {
+      setContent(newContent);
     },
-    [frontmatter, setContent]
-  );
-
-  // ── 回调：更新 title ─────────────────────────────────────
-  const handleTitleChange = useCallback(
-    (title: string) => {
-      const updated = { ...frontmatter, title, modified: new Date().toISOString() };
-      const full = stringifyFrontMatter(updated, body);
-      setContent(full);
-    },
-    [frontmatter, body, setContent]
-  );
-
-  // ── 回调：更新 tags ──────────────────────────────────────
-  const handleTagsChange = useCallback(
-    (tags: string[]) => {
-      const updated = { ...frontmatter, tags, modified: new Date().toISOString() };
-      const full = stringifyFrontMatter(updated, body);
-      setContent(full);
-    },
-    [frontmatter, body, setContent]
+    [setContent]
   );
 
   // ── 自动保存（debounce 2s）────────────────────────────────
@@ -75,7 +45,6 @@ export function EditorArea() {
     saveTimerRef.current = setTimeout(async () => {
       try {
         await window.electronAPI?.file.write(currentFile, currentContent);
-        // 保存后触发版本快照（IPC 内部有 60s 频率限制）
         window.electronAPI?.history.save(currentFile, currentContent).catch(() => {});
         markSaved();
       } catch (err) {
@@ -96,6 +65,7 @@ export function EditorArea() {
         (async () => {
           try {
             await window.electronAPI?.file.write(currentFile, currentContent);
+            window.electronAPI?.history.save(currentFile, currentContent).catch(() => {});
             markSaved();
           } catch (err) {
             console.error('[EditorArea] manual save failed:', err);
@@ -111,7 +81,6 @@ export function EditorArea() {
   if (!currentFile) {
     return (
       <div className={styles.area}>
-        <div className={styles.dragArea} />
         <div className={styles.empty}>
           {workspace ? '选择左侧文件开始编辑' : '请先选择工作区'}
         </div>
@@ -121,21 +90,11 @@ export function EditorArea() {
 
   return (
     <div className={styles.area}>
-      <div className={styles.dragArea} />
       <div className={styles.scroll}>
         <div className={styles.content}>
-          <TitleInput
-            title={frontmatter.title ?? ''}
-            onChange={handleTitleChange}
-          />
-          <TagEditor
-            tags={frontmatter.tags ?? []}
-            onChange={handleTagsChange}
-          />
-          <div className={styles.divider} />
           <EditorCore
-            body={body}
-            onBodyChange={handleBodyChange}
+            body={currentContent}
+            onBodyChange={handleContentChange}
             isDark={isDark}
             filePath={currentFile}
           />
