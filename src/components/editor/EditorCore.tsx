@@ -78,7 +78,14 @@ export function EditorCore({ body, onBodyChange, isDark, filePath }: Props) {
     <div
       ref={containerRef}
       className={styles.wrapper}
-      onClick={() => viewRef.current?.focus()}
+      onMouseDown={(e) => {
+        // 仅当点击到 wrapper 本身（不是 CM6 子元素）时手动聚焦；
+        // CM6 的子元素有自己的点击处理，不要干扰它
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+          viewRef.current?.focus();
+        }
+      }}
     />
   );
 }
