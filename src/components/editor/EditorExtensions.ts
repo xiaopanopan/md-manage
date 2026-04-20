@@ -214,6 +214,9 @@ export function createExtensions(
     // Markdown 语言
     markdown({ base: markdownLanguage, codeLanguages: languages }),
 
+    // 自动换行（超长行软换行显示，避免横向溢出丢失内容）
+    EditorView.lineWrapping,
+
     // 编辑功能
     lineNumbers(),
     highlightActiveLine(),

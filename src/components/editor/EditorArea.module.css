@@ -14,7 +14,7 @@
 }
 
 .content {
-  max-width: var(--content-width);
+  max-width: var(--editor-width);
   min-height: 100%;
   margin: 0 auto;
   padding: 0 24px 120px;
