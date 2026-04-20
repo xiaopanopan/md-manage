@@ -98,18 +98,14 @@ export function Sidebar() {
 
       switch (type) {
         case 'delete': {
-          const name = targetPath.split('/').pop();
-          if (window.confirm(`确认删除 "${name}"？\n${isFolder ? '文件夹' : '文件'}将移至废纸篓。`)) {
-            try {
-              // 若正在打开此文件，清空当前文件
-              if (useAppStore.getState().currentFile === targetPath) {
-                useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
-              }
-              await window.electronAPI.file.delete(targetPath);
-              await refreshFiles();
-            } catch (e) {
-              console.error('[Sidebar] delete failed:', e);
+          try {
+            if (useAppStore.getState().currentFile === targetPath) {
+              useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
             }
+            await window.electronAPI.file.delete(targetPath);
+            await refreshFiles();
+          } catch (e) {
+            console.error('[Sidebar] delete failed:', e);
           }
           break;
         }
@@ -133,19 +129,6 @@ export function Sidebar() {
             await refreshFiles();
           } catch (e) {
             console.error('[Sidebar] newFolder failed:', e);
-          }
-          break;
-        }
-        case 'newFolderSibling': {
-          // 文件夹右键"新建文件夹"：在其父目录创建兄弟文件夹
-          const parent = targetPath.slice(0, targetPath.lastIndexOf('/'));
-          const name = `新文件夹-${Date.now()}`;
-          const dirPath = `${parent}/${name}`;
-          try {
-            await window.electronAPI.file.write(`${dirPath}/.gitkeep`, '');
-            await refreshFiles();
-          } catch (e) {
-            console.error('[Sidebar] newFolderSibling failed:', e);
           }
           break;
         }

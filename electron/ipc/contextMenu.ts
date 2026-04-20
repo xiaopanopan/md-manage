@@ -15,44 +15,23 @@ export function registerContextMenuHandlers(): void {
 
       if (type === 'file') {
         const filePath = data.path ?? '';
-        const isFolder = data.isFolder === 'true';
 
-        if (isFolder) {
-          template = [
-            new MenuItem({ label: '新建文件', click: () => send('newFile') }),
-            new MenuItem({ label: '新建文件夹', click: () => send('newFolderSibling') }),
-            new MenuItem({ label: '新建子文件夹', click: () => send('newFolder') }),
-            new MenuItem({ type: 'separator' }),
-            new MenuItem({
-              label: '在文件夹中打开',
-              accelerator: 'CmdOrCtrl+Shift+O',
-              click: () => shell.showItemInFolder(filePath),
-            }),
-            new MenuItem({ type: 'separator' }),
-            new MenuItem({
-              label: '删除',
-              accelerator: 'CmdOrCtrl+Backspace',
-              click: () => send('delete'),
-            }),
-          ];
-        } else {
-          template = [
-            new MenuItem({ label: '新建文件', click: () => send('newFile') }),
-            new MenuItem({ label: '新建文件夹', click: () => send('newFolder') }),
-            new MenuItem({ type: 'separator' }),
-            new MenuItem({
-              label: '在文件夹中打开',
-              accelerator: 'CmdOrCtrl+Shift+O',
-              click: () => shell.showItemInFolder(filePath),
-            }),
-            new MenuItem({ type: 'separator' }),
-            new MenuItem({
-              label: '删除',
-              accelerator: 'CmdOrCtrl+Backspace',
-              click: () => send('delete'),
-            }),
-          ];
-        }
+        template = [
+          new MenuItem({ label: '新建文件', click: () => send('newFile') }),
+          new MenuItem({ label: '新建子文件夹', click: () => send('newFolder') }),
+          new MenuItem({ type: 'separator' }),
+          new MenuItem({
+            label: '在文件夹中打开',
+            accelerator: 'CmdOrCtrl+Shift+O',
+            click: () => shell.showItemInFolder(filePath),
+          }),
+          new MenuItem({ type: 'separator' }),
+          new MenuItem({
+            label: '删除',
+            accelerator: 'CmdOrCtrl+Backspace',
+            click: () => send('delete'),
+          }),
+        ];
       } else {
         // editor context menu
         template = [

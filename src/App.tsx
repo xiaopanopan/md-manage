@@ -132,14 +132,11 @@ export default function App() {
         if (inEditable) return;
         if (!currentFile) return;
         e.preventDefault();
-        const name = currentFile.split('/').pop();
-        if (window.confirm(`确认删除 "${name}"？\n文件将移至废纸篓。`)) {
-          try {
-            await window.electronAPI?.file.delete(currentFile);
-            useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
-          } catch (err) {
-            console.error('[App] delete failed:', err);
-          }
+        try {
+          await window.electronAPI?.file.delete(currentFile);
+          useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
+        } catch (err) {
+          console.error('[App] delete failed:', err);
         }
         return;
       }
