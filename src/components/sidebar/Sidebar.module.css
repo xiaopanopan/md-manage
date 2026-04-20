@@ -90,13 +90,6 @@
   opacity: 1;
 }
 
-/* 工具栏最后一个按钮的 tooltip 靠右对齐，防止溢出侧边栏 */
-.toolbarActions .iconBtn:last-child::after {
-  left: auto;
-  right: 0;
-  transform: none;
-}
-
 /* 文件列表滚动区 */
 .fileList {
   flex: 1;
