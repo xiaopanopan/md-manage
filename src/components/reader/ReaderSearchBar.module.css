@@ -1,0 +1,111 @@
+/* ── ReaderSearchBar ─────────────────────────────────────── */
+.bar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bg-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  min-width: 200px;
+  background: var(--bg-light);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.inputWrap:focus-within {
+  border-color: var(--color-gray-500);
+}
+
+.icon {
+  flex-shrink: 0;
+  opacity: 0.4;
+  color: var(--color-gray-800);
+}
+
+.input {
+  flex: 1;
+  height: 100%;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: transparent;
+  border: none;
+  outline: none;
+  user-select: text;
+}
+
+.input::placeholder {
+  color: var(--color-gray-300);
+}
+
+.count {
+  flex-shrink: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-500);
+  min-width: 44px;
+  text-align: center;
+}
+
+.btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.btn:hover {
+  background: var(--bg-hover);
+  color: var(--color-black);
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* CSS Custom Highlight API — 匹配高亮 */
+::highlight(dz-reader-search) {
+  background-color: rgba(255, 200, 0, 0.35);
+  border-radius: 2px;
+}
+
+::highlight(dz-reader-search-current) {
+  background-color: rgba(255, 145, 0, 0.7);
+  color: var(--color-black);
+  border-radius: 2px;
+}
+
+[data-theme="dark"] ::highlight(dz-reader-search) {
+  background-color: rgba(255, 200, 0, 0.25);
+}
+[data-theme="dark"] ::highlight(dz-reader-search-current) {
+  background-color: rgba(255, 165, 0, 0.65);
+}
