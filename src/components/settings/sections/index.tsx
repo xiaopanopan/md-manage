@@ -130,8 +130,6 @@ export function EditorSettings() {
 export function AppearanceSettings() {
   const theme = useAppStore((s) => s.theme);
   const setTheme = useAppStore((s) => s.setTheme);
-  const sidebarVisible = useAppStore((s) => s.sidebarVisible);
-  const setSidebarVisible = useAppStore((s) => s.setSidebarVisible);
 
   return (
     <div>
@@ -151,22 +149,6 @@ export function AppearanceSettings() {
             <option value="light">浅色</option>
             <option value="dark">深色</option>
           </select>
-        </div>
-      </div>
-
-      <div className={styles.settingRow}>
-        <div>
-          <div className={styles.settingLabel}>显示侧边栏</div>
-        </div>
-        <div className={styles.settingControl}>
-          <label className={styles.toggle}>
-            <input
-              type="checkbox"
-              checked={sidebarVisible}
-              onChange={(e) => setSidebarVisible(e.target.checked)}
-            />
-            <span className={styles.toggleSlider} />
-          </label>
         </div>
       </div>
     </div>
