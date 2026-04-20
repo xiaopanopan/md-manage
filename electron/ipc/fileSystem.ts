@@ -116,7 +116,14 @@ export function registerFileSystemHandlers(): void {
   });
 
   ipcMain.handle('file:delete', async (_event, filePath: string) => {
-    await shell.trashItem(filePath);
+    try {
+      // 先尝试移到废纸篓（可恢复）
+      await shell.trashItem(filePath);
+    } catch (err) {
+      console.warn('[file:delete] trashItem failed, falling back to rm:', err);
+      // 回退：递归强制删除（处理 shell.trashItem 无法处理的文件夹）
+      await fs.rm(filePath, { recursive: true, force: true });
+    }
   });
 
   ipcMain.handle('file:rename', async (_event, oldPath: string, newPath: string) => {
