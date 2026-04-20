@@ -21,14 +21,25 @@ const sanitizeSchema = {
   },
 };
 
-/** 自定义 rehype 插件：将相对图片路径转为 file:// 协议 */
+/** 对文件路径做 URL 编码，保留分隔符 `/` */
+function encodeFilePath(p: string): string {
+  return p
+    .replace(/\\/g, '/') // Windows 反斜杠转正斜杠
+    .split('/')
+    .map((seg) => encodeURIComponent(seg))
+    .join('/');
+}
+
+/** 自定义 rehype 插件：将相对图片路径转为 file:// 协议（URL 编码以支持空格/中文/特殊字符） */
 function rehypeFixImagePaths(workspace: string) {
   return (tree: AnyNode) => {
     visit(tree, 'element', (node: AnyNode) => {
       if (node.tagName === 'img' && node.properties?.src) {
         const src = node.properties.src as string;
         if (!src.startsWith('http') && !src.startsWith('file://') && !src.startsWith('data:')) {
-          node.properties.src = `file://${workspace}/${src}`;
+          const encodedWs = encodeFilePath(workspace);
+          const encodedSrc = encodeFilePath(src);
+          node.properties.src = `file://${encodedWs}/${encodedSrc}`;
         }
       }
     });

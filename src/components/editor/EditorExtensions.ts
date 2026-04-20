@@ -152,6 +152,21 @@ export function createDarkTheme() {
 }
 
 // ── 图片粘贴 / 拖拽处理 ──────────────────────────────────
+// MIME 类型 → 文件扩展名（应对 image/svg+xml 等带 `+` 的异常情况）
+const MIME_TO_EXT: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/svg+xml': 'svg',
+  'image/bmp': 'bmp',
+  'image/apng': 'apng',
+};
+
+function mimeToExt(mime: string): string {
+  return MIME_TO_EXT[mime.toLowerCase()] ?? 'png';
+}
+
 function imageHandlers() {
   return EditorView.domEventHandlers({
     paste(event: ClipboardEvent, view: EditorView) {
@@ -164,7 +179,7 @@ function imageHandlers() {
         const blob = img.getAsFile();
         if (!blob) return;
         const buffer = Array.from(new Uint8Array(await blob.arrayBuffer()));
-        const ext = img.type.split('/')[1] || 'png';
+        const ext = mimeToExt(img.type);
         const relPath = await window.electronAPI?.image.save(buffer, ext);
         if (relPath) {
           insertText(view, `![](${relPath})`);
@@ -181,7 +196,9 @@ function imageHandlers() {
       (async () => {
         for (const file of images) {
           const buffer = Array.from(new Uint8Array(await file.arrayBuffer()));
-          const ext = file.name.split('.').pop() || 'png';
+          // 优先用文件名扩展名（保留原始信息），fallback 到 MIME 映射
+          const fileExt = file.name.includes('.') ? file.name.split('.').pop()! : '';
+          const ext = fileExt || mimeToExt(file.type);
           const relPath = await window.electronAPI?.image.save(buffer, ext);
           if (relPath) {
             insertText(view, `![](${relPath})\n`);

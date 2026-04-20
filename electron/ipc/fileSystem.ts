@@ -179,8 +179,8 @@ export function registerFileSystemHandlers(): void {
     const absPath = path.join(imagesDir, filename);
     await fs.writeFile(absPath, Buffer.from(buffer));
 
-    // 返回相对于工作区的路径，供 Markdown 引用使用
-    return path.join('.digitalzen', 'images', filename);
+    // 返回相对于工作区的路径（强制正斜杠，兼容 Markdown 和 file:// URL）
+    return `.digitalzen/images/${filename}`;
   });
 
   ipcMain.handle('image:getAbsPath', async (_event, relativePath: string) => {
