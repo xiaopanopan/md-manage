@@ -166,6 +166,8 @@ export function Sidebar() {
 
   const handleMoveFile = useCallback(
     async (srcPath: string, destDir: string) => {
+      // 验证：不能拖到自身（文件夹）
+      if (srcPath === destDir) return;
       // 验证：不能移动到自身所在目录
       const srcDir = srcPath.slice(0, srcPath.lastIndexOf('/'));
       if (srcDir === destDir) return;

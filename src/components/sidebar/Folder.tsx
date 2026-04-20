@@ -80,12 +80,21 @@ export function Folder({
     setIsDragOver(false);
     const srcPath = e.dataTransfer.getData('application/x-file-path');
     if (!srcPath) return;
+    // 拒绝拖到自身
+    if (srcPath === folder.path) return;
     onMoveFile(srcPath, folder.path);
+  };
+
+  const handleDragStart = (e: React.DragEvent) => {
+    e.stopPropagation();
+    e.dataTransfer.setData('application/x-file-path', folder.path);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   const children = folder.children ?? [];
 
   if (isSection) {
+    // DRAFTS/ARCHIVES 顶级分区不可拖动
     return (
       <div
         className={`${styles.folder} ${isDragOver ? styles.dropTarget : ''}`}
@@ -130,6 +139,8 @@ export function Folder({
         style={{ paddingLeft: `${12 + depth * 12}px` }}
         onClick={() => setOpen((v) => !v)}
         onContextMenu={handleContextMenu}
+        draggable
+        onDragStart={handleDragStart}
       >
         <Arrow open={open} />
         <FolderIcon open={open} />
