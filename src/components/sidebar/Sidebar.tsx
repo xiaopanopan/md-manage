@@ -52,8 +52,9 @@ const AutoIcon = () => (
 
 const SettingsIcon = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <circle cx="8" cy="8" r="2" />
-    <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M3.5 12.5l1.4-1.4M11.1 4.9l1.4-1.4" />
+    <circle cx="8" cy="8" r="6.5" />
+    <path d="M6 6a2 2 0 114 0c0 1.2-1.5 1.5-2 2.5" strokeLinecap="round" />
+    <circle cx="8" cy="12" r="0.5" fill="currentColor" stroke="none" />
   </svg>
 );
 
@@ -214,7 +215,7 @@ export function Sidebar() {
         <div className={styles.toolbarActions}>
           <button
             className={styles.iconBtn}
-            data-tooltip="设置 / 使用说明 (⌘,)"
+            data-tooltip="使用说明 / 设置 (⌘,)"
             onClick={openSettings}
           >
             <SettingsIcon />
