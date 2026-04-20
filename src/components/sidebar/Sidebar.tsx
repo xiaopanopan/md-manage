@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { FileNode } from '@/types/file';
 import type { MenuAction } from '@/types/ipc';
-import { useFiles, useWorkspace } from '@/hooks/useAppStore';
+import { useFiles, useWorkspace, useCurrentFile } from '@/hooks/useAppStore';
 import { useAppStore } from '@/stores/appStore';
 import { Folder } from './Folder';
 import { FileItem } from './FileItem';
@@ -70,8 +70,20 @@ export function Sidebar() {
   const openSettings = useAppStore((s) => s.openSettings);
 
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [rootDragOver, setRootDragOver] = useState(false);
+
+  const currentFile = useCurrentFile();
+  // 活动目录：当前打开文件所在目录；否则工作区根目录
+  const activeDir = currentFile
+    ? currentFile.slice(0, currentFile.lastIndexOf('/'))
+    : workspace;
+
+  // 拖拽全局结束 → 清除根目录高亮
+  useEffect(() => {
+    const clear = () => setRootDragOver(false);
+    window.addEventListener('dragend', clear);
+    return () => window.removeEventListener('dragend', clear);
+  }, []);
 
   // 响应右键菜单动作
   useEffect(() => {
@@ -192,7 +204,7 @@ export function Sidebar() {
 
   const handleNewFile = async () => {
     if (!workspace || !window.electronAPI) return;
-    const targetDir = selectedFolder ?? workspace;
+    const targetDir = activeDir ?? workspace;
     const newPath = await window.electronAPI.file.create(targetDir, `untitled-${Date.now()}`);
     await refreshFiles();
     setRenamingPath(newPath);
@@ -200,7 +212,7 @@ export function Sidebar() {
 
   const handleNewFolder = async () => {
     if (!workspace || !window.electronAPI) return;
-    const targetDir = selectedFolder ?? workspace;
+    const targetDir = activeDir ?? workspace;
     const name = `新文件夹-${Date.now()}`;
     const dirPath = `${targetDir}/${name}`;
     await window.electronAPI.file.write(`${dirPath}/.gitkeep`, '');
@@ -278,10 +290,6 @@ export function Sidebar() {
       {/* 文件列表（也是根目录 drop zone） */}
       <div
         className={`${styles.fileList} ${rootDragOver ? styles.rootDropTarget : ''}`}
-        onClick={(e) => {
-          // 点击空白区域取消选中
-          if (e.target === e.currentTarget) setSelectedFolder(null);
-        }}
         onDragOver={(e) => {
           if (!workspace) return;
           if (!e.dataTransfer.types.includes('application/x-file-path')) return;
@@ -321,8 +329,6 @@ export function Sidebar() {
                 onRenameConfirm={handleRenameConfirm}
                 onRenameCancel={handleRenameCancel}
                 onMoveFile={handleMoveFile}
-                selectedFolder={selectedFolder}
-                onSelectFolder={setSelectedFolder}
               />
             ))}
 
@@ -337,8 +343,6 @@ export function Sidebar() {
                   onRenameConfirm={handleRenameConfirm}
                   onRenameCancel={handleRenameCancel}
                   onMoveFile={handleMoveFile}
-                  selectedFolder={selectedFolder}
-                  onSelectFolder={setSelectedFolder}
                 />
               ) : (
                 <FileItem

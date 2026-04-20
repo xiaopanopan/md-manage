@@ -14,13 +14,6 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* 选中态 */
-.header.selected,
-.sectionLabel.selected {
-  background: var(--bg-hover);
-  box-shadow: inset 2px 0 0 var(--color-black);
-}
-
 .header {
   display: flex;
   align-items: center;

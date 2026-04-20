@@ -3,7 +3,6 @@ import type { FileNode } from '@/types/file';
 import { FileTree } from './FileTree';
 import styles from './Folder.module.css';
 
-// Arrow SVG
 const Arrow = ({ open }: { open: boolean }) => (
   <svg
     className={`${styles.arrow} ${open ? styles.open : ''}`}
@@ -32,8 +31,6 @@ interface Props {
   onRenameConfirm: (file: FileNode, newName: string) => void;
   onRenameCancel: () => void;
   onMoveFile: (srcPath: string, destDir: string) => void;
-  selectedFolder: string | null;
-  onSelectFolder: (path: string | null) => void;
 }
 
 export function Folder({
@@ -44,21 +41,15 @@ export function Folder({
   onRenameConfirm,
   onRenameCancel,
   onMoveFile,
-  selectedFolder,
-  onSelectFolder,
 }: Props) {
   const [open, setOpen] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // 拖拽结束时（drop/dragend/escape）统一清除高亮
+  // 拖拽全局结束 → 清除高亮（dragend 一定会在 source 上触发并冒泡）
   useEffect(() => {
     const clear = () => setIsDragOver(false);
     window.addEventListener('dragend', clear);
-    window.addEventListener('drop', clear);
-    return () => {
-      window.removeEventListener('dragend', clear);
-      window.removeEventListener('drop', clear);
-    };
+    return () => window.removeEventListener('dragend', clear);
   }, []);
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -79,7 +70,6 @@ export function Folder({
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    // 使用 relatedTarget 判断是否真正离开（避免子元素触发）
     if (e.currentTarget.contains(e.relatedTarget as Node)) return;
     setIsDragOver(false);
   };
@@ -94,12 +84,6 @@ export function Folder({
   };
 
   const children = folder.children ?? [];
-  const isSelected = selectedFolder === folder.path;
-
-  const handleHeaderClick = () => {
-    setOpen((v) => !v);
-    onSelectFolder(isSelected ? null : folder.path);
-  };
 
   if (isSection) {
     return (
@@ -110,8 +94,8 @@ export function Folder({
         onDrop={handleDrop}
       >
         <div
-          className={`${styles.sectionLabel} ${isSelected ? styles.selected : ''}`}
-          onClick={handleHeaderClick}
+          className={styles.sectionLabel}
+          onClick={() => setOpen((v) => !v)}
           onContextMenu={handleContextMenu}
         >
           <Arrow open={open} />
@@ -128,8 +112,6 @@ export function Folder({
             onRenameConfirm={onRenameConfirm}
             onRenameCancel={onRenameCancel}
             onMoveFile={onMoveFile}
-            selectedFolder={selectedFolder}
-            onSelectFolder={onSelectFolder}
           />
         )}
       </div>
@@ -144,9 +126,9 @@ export function Folder({
       onDrop={handleDrop}
     >
       <div
-        className={`${styles.header} ${isSelected ? styles.selected : ''}`}
+        className={styles.header}
         style={{ paddingLeft: `${12 + depth * 12}px` }}
-        onClick={handleHeaderClick}
+        onClick={() => setOpen((v) => !v)}
         onContextMenu={handleContextMenu}
       >
         <Arrow open={open} />
@@ -161,8 +143,6 @@ export function Folder({
           onRenameConfirm={onRenameConfirm}
           onRenameCancel={onRenameCancel}
           onMoveFile={onMoveFile}
-          selectedFolder={selectedFolder}
-          onSelectFolder={onSelectFolder}
         />
       )}
     </div>
