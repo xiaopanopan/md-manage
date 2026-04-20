@@ -91,3 +91,9 @@
 .children {
   padding-left: 12px;
 }
+
+.renameWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}

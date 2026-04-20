@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { FileNode } from '@/types/file';
 import { FileTree } from './FileTree';
+import { RenameDialog } from '@/components/dialogs/RenameDialog';
 import styles from './Folder.module.css';
 
 const Arrow = ({ open }: { open: boolean }) => (
@@ -92,9 +93,10 @@ export function Folder({
   };
 
   const children = folder.children ?? [];
+  const isRenaming = renamingPath === folder.path;
 
   if (isSection) {
-    // DRAFTS/ARCHIVES 顶级分区不可拖动
+    // DRAFTS/ARCHIVES 顶级分区不可拖动，也不可重命名
     return (
       <div
         className={`${styles.folder} ${isDragOver ? styles.dropTarget : ''}`}
@@ -137,14 +139,24 @@ export function Folder({
       <div
         className={styles.header}
         style={{ paddingLeft: `${12 + depth * 12}px` }}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => !isRenaming && setOpen((v) => !v)}
         onContextMenu={handleContextMenu}
-        draggable
+        draggable={!isRenaming}
         onDragStart={handleDragStart}
       >
         <Arrow open={open} />
         <FolderIcon open={open} />
-        <span className={styles.folderName}>{folder.name}</span>
+        {isRenaming ? (
+          <div className={styles.renameWrap} onClick={(e) => e.stopPropagation()}>
+            <RenameDialog
+              initialName={folder.name}
+              onConfirm={(n) => onRenameConfirm(folder, n)}
+              onCancel={onRenameCancel}
+            />
+          </div>
+        ) : (
+          <span className={styles.folderName}>{folder.name}</span>
+        )}
       </div>
       {open && (
         <FileTree

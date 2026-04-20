@@ -164,10 +164,26 @@ export function Sidebar() {
   const handleRenameConfirm = useCallback(
     async (file: FileNode, newName: string) => {
       setRenamingPath(null);
+      const trimmed = newName.trim();
+      if (!trimmed || trimmed === file.name) return;
+
       const dir = file.path.slice(0, file.path.length - file.name.length - 1);
-      const newPath = `${dir}/${newName.endsWith('.md') ? newName : `${newName}.md`}`;
+      // 文件夹不追加扩展名；文件自动补 .md
+      const finalName =
+        file.type === 'folder'
+          ? trimmed
+          : trimmed.endsWith('.md')
+          ? trimmed
+          : `${trimmed}.md`;
+      const newPath = `${dir}/${finalName}`;
+
       try {
         await window.electronAPI?.file.rename(file.path, newPath);
+        // 若正在打开被重命名的文件，同步更新 currentFile
+        const current = useAppStore.getState().currentFile;
+        if (current === file.path) {
+          useAppStore.setState({ currentFile: newPath });
+        }
         await refreshFiles();
       } catch (e) {
         console.error('[Sidebar] rename failed:', e);
