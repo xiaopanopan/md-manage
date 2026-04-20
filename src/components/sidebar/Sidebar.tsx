@@ -5,7 +5,6 @@ import { useFiles, useWorkspace } from '@/hooks/useAppStore';
 import { useAppStore } from '@/stores/appStore';
 import { Folder } from './Folder';
 import { FileItem } from './FileItem';
-import { CurrentFileInfo } from './CurrentFileInfo';
 import styles from './Sidebar.module.css';
 
 // ── 图标 ─────────────────────────────────────────────────────
@@ -302,9 +301,6 @@ export function Sidebar() {
           </>
         )}
       </div>
-
-      {/* 底部文件信息 */}
-      <CurrentFileInfo />
     </aside>
   );
 }

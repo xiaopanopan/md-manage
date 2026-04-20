@@ -8,6 +8,7 @@ import {
   useWorkspace,
 } from '@/hooks/useAppStore';
 import { EditorCore } from './EditorCore';
+import { FileInfoBar } from './FileInfoBar';
 import styles from './EditorArea.module.css';
 
 export function EditorArea() {
@@ -90,6 +91,7 @@ export function EditorArea() {
           />
         </div>
       </div>
+      <FileInfoBar content={currentContent} isDirty={isDirty} />
     </div>
   );
 }
