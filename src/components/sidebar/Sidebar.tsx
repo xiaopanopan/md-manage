@@ -159,6 +159,26 @@ export function Sidebar() {
 
   const handleRenameCancel = useCallback(() => setRenamingPath(null), []);
 
+  const handleMoveFile = useCallback(
+    async (srcPath: string, destDir: string) => {
+      // 验证：不能移动到自身所在目录
+      const srcDir = srcPath.slice(0, srcPath.lastIndexOf('/'));
+      if (srcDir === destDir) return;
+      // 验证：不能移动到自己的子目录（避免循环）
+      if (destDir.startsWith(srcPath + '/')) return;
+
+      const fileName = srcPath.split('/').pop() ?? '';
+      const newPath = `${destDir}/${fileName}`;
+      try {
+        await window.electronAPI?.file.rename(srcPath, newPath);
+        await refreshFiles();
+      } catch (err) {
+        console.error('[Sidebar] move failed:', err);
+      }
+    },
+    [refreshFiles]
+  );
+
   const handleOpenWorkspace = async () => {
     const ws = await window.electronAPI?.workspace.open();
     if (ws) {
@@ -273,6 +293,7 @@ export function Sidebar() {
                 renamingPath={renamingPath}
                 onRenameConfirm={handleRenameConfirm}
                 onRenameCancel={handleRenameCancel}
+                onMoveFile={handleMoveFile}
               />
             ))}
 
@@ -286,6 +307,7 @@ export function Sidebar() {
                   renamingPath={renamingPath}
                   onRenameConfirm={handleRenameConfirm}
                   onRenameCancel={handleRenameCancel}
+                  onMoveFile={handleMoveFile}
                 />
               ) : (
                 <FileItem

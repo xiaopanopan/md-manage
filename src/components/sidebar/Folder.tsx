@@ -27,11 +27,11 @@ const FolderIcon = ({ open }: { open: boolean }) => (
 interface Props {
   folder: FileNode;
   depth?: number;
-  /** 是否以 DRAFTS/ARCHIVES 顶层分类样式渲染 */
   isSection?: boolean;
   renamingPath: string | null;
   onRenameConfirm: (file: FileNode, newName: string) => void;
   onRenameCancel: () => void;
+  onMoveFile: (srcPath: string, destDir: string) => void;
 }
 
 export function Folder({
@@ -41,8 +41,10 @@ export function Folder({
   renamingPath,
   onRenameConfirm,
   onRenameCancel,
+  onMoveFile,
 }: Props) {
   const [open, setOpen] = useState(true);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -53,11 +55,39 @@ export function Folder({
     });
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!e.dataTransfer.types.includes('application/x-file-path')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isDragOver) setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // 使用 relatedTarget 判断是否真正离开（避免子元素触发）
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    const srcPath = e.dataTransfer.getData('application/x-file-path');
+    if (!srcPath) return;
+    onMoveFile(srcPath, folder.path);
+  };
+
   const children = folder.children ?? [];
 
   if (isSection) {
     return (
-      <div className={styles.folder}>
+      <div
+        className={`${styles.folder} ${isDragOver ? styles.dropTarget : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div
           className={styles.sectionLabel}
           onClick={() => setOpen((v) => !v)}
@@ -76,6 +106,7 @@ export function Folder({
             renamingPath={renamingPath}
             onRenameConfirm={onRenameConfirm}
             onRenameCancel={onRenameCancel}
+            onMoveFile={onMoveFile}
           />
         )}
       </div>
@@ -83,7 +114,12 @@ export function Folder({
   }
 
   return (
-    <div className={styles.folder}>
+    <div
+      className={`${styles.folder} ${isDragOver ? styles.dropTarget : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div
         className={styles.header}
         style={{ paddingLeft: `${12 + depth * 12}px` }}
@@ -101,6 +137,7 @@ export function Folder({
           renamingPath={renamingPath}
           onRenameConfirm={onRenameConfirm}
           onRenameCancel={onRenameCancel}
+          onMoveFile={onMoveFile}
         />
       )}
     </div>

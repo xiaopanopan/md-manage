@@ -1,5 +1,18 @@
 /* ── Folder ──────────────────────────────────────────────── */
-.folder {}
+.folder {
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.folder.dropTarget {
+  background: rgba(0, 0, 0, 0.06);
+  outline: 1px dashed var(--color-gray-500);
+  outline-offset: -1px;
+}
+
+[data-theme="dark"] .folder.dropTarget {
+  background: rgba(255, 255, 255, 0.08);
+}
 
 .header {
   display: flex;

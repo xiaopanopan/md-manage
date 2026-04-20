@@ -54,6 +54,11 @@ export function FileItem({
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/x-file-path', file.path);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
   const baseName = file.name.replace(/\.md$/i, '');
 
   return (
@@ -62,6 +67,8 @@ export function FileItem({
       style={{ paddingLeft: `${12 + depth * 12}px` }}
       onClick={handleClick}
       onContextMenu={handleContextMenu}
+      draggable={!isRenaming}
+      onDragStart={handleDragStart}
     >
       <FileIcon />
       {isRenaming ? (
