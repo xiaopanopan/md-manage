@@ -1,5 +1,5 @@
 {
-  "name": "digital-zen",
+  "name": "md-manage",
   "version": "0.1.0",
   "description": "A minimalist Markdown desktop editor",
   "main": "dist/main/main.js",
@@ -15,6 +15,7 @@
     "build:check": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json",
     "preview": "vite preview",
     "test": "vitest",
+    "icon": "node scripts/generate-icon.mjs",
     "package": "vite build && electron-builder"
   },
   "keywords": [
@@ -58,6 +59,7 @@
     "concurrently": "^8.0.0",
     "electron": "^28.3.3",
     "electron-builder": "^24.0.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
     "vite-plugin-electron": "^0.28.0",

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" />
+      <feOffset dx="0" dy="4" result="offset" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.08" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- 白底圆角方形 -->
+  <rect x="80" y="80" width="864" height="864" rx="180" ry="180" fill="#FFFFFF" filter="url(#shadow)" />
+  <!-- 黑色加粗 M 字母 -->
+  <text
+    x="512"
+    y="720"
+    text-anchor="middle"
+    font-family="Inter, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+    font-weight="900"
+    font-size="680"
+    fill="#000000"
+    letter-spacing="-30"
+  >M</text>
+</svg>

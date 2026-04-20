@@ -1,5 +1,5 @@
-appId: com.digitalzen.app
-productName: Digital Zen
+appId: com.mdmanage.app
+productName: md-manage
 directories:
   output: release
   buildResources: build
@@ -13,19 +13,19 @@ mac:
     - dmg
     - zip
   category: public.app-category.productivity
-  icon: build/icon.icns
+  icon: build/icon.png
   darkModeSupport: true
 
 win:
   target:
     - nsis
-  icon: build/icon.ico
+  icon: build/icon.png
 
 linux:
   target:
     - AppImage
     - deb
-  icon: build/icons
+  icon: build/icon.png
 
 nsis:
   oneClick: false

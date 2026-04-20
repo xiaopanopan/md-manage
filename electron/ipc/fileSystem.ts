@@ -59,8 +59,8 @@ async function initWorkspace(workspacePath: string): Promise<void> {
   const dirs = [
     path.join(workspacePath, 'DRAFTS'),
     path.join(workspacePath, 'ARCHIVES'),
-    path.join(workspacePath, '.digitalzen', 'images'),
-    path.join(workspacePath, '.digitalzen', 'history'),
+    path.join(workspacePath, '.md-manage', 'images'),
+    path.join(workspacePath, '.md-manage', 'history'),
   ];
   for (const dir of dirs) {
     await fs.mkdir(dir, { recursive: true });
@@ -172,7 +172,7 @@ export function registerFileSystemHandlers(): void {
     const workspace = getConfig('workspace') as string | null;
     if (!workspace) throw new Error('No workspace configured');
 
-    const imagesDir = path.join(workspace, '.digitalzen', 'images');
+    const imagesDir = path.join(workspace, '.md-manage', 'images');
     await fs.mkdir(imagesDir, { recursive: true });
 
     const filename = `${Date.now()}.${ext.replace(/^\./, '')}`;
@@ -180,7 +180,7 @@ export function registerFileSystemHandlers(): void {
     await fs.writeFile(absPath, Buffer.from(buffer));
 
     // 返回相对于工作区的路径（强制正斜杠，兼容 Markdown 和 file:// URL）
-    return `.digitalzen/images/${filename}`;
+    return `.md-manage/images/${filename}`;
   });
 
   ipcMain.handle('image:getAbsPath', async (_event, relativePath: string) => {

@@ -267,7 +267,7 @@ export function Sidebar() {
       {/* 工具栏 */}
       <div className={styles.toolbar}>
         <span className={styles.toolbarTitle}>
-          {workspace ? workspace.split('/').pop() : 'Digital Zen'}
+          {workspace ? workspace.split('/').pop() : 'md-manage'}
         </span>
         <div className={styles.toolbarActions}>
           <button

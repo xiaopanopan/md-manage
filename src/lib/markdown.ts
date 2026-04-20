@@ -76,7 +76,7 @@ export function wrapHtmlForExport(bodyHtml: string, title?: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title ?? 'Digital Zen Export'}</title>
+  <title>${title ?? 'md-manage Export'}</title>
   <style>${EXPORT_STYLES}</style>
 </head>
 <body>
