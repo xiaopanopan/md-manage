@@ -32,14 +32,14 @@ export function ModeSwitch() {
         onClick={() => handleSwitch('read')}
         data-tooltip="阅读模式 (⌘E)"
       >
-        Read
+        阅读
       </button>
       <button
         className={`${styles.btn} ${viewMode === 'edit' ? styles.active : ''} ${disabled ? styles.disabled : ''}`}
         onClick={() => handleSwitch('edit')}
         data-tooltip="编辑模式 (⌘E)"
       >
-        Edit
+        编辑
       </button>
     </div>
   );
