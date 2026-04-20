@@ -1,5 +1,5 @@
 appId: com.mdmanage.app
-productName: md-manage
+productName: 简记
 directories:
   output: release
   buildResources: build
