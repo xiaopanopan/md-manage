@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FileNode } from '@/types/file';
 import { FileTree } from './FileTree';
 import styles from './Folder.module.css';
@@ -32,6 +32,8 @@ interface Props {
   onRenameConfirm: (file: FileNode, newName: string) => void;
   onRenameCancel: () => void;
   onMoveFile: (srcPath: string, destDir: string) => void;
+  selectedFolder: string | null;
+  onSelectFolder: (path: string | null) => void;
 }
 
 export function Folder({
@@ -42,9 +44,22 @@ export function Folder({
   onRenameConfirm,
   onRenameCancel,
   onMoveFile,
+  selectedFolder,
+  onSelectFolder,
 }: Props) {
   const [open, setOpen] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // 拖拽结束时（drop/dragend/escape）统一清除高亮
+  useEffect(() => {
+    const clear = () => setIsDragOver(false);
+    window.addEventListener('dragend', clear);
+    window.addEventListener('drop', clear);
+    return () => {
+      window.removeEventListener('dragend', clear);
+      window.removeEventListener('drop', clear);
+    };
+  }, []);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -79,6 +94,12 @@ export function Folder({
   };
 
   const children = folder.children ?? [];
+  const isSelected = selectedFolder === folder.path;
+
+  const handleHeaderClick = () => {
+    setOpen((v) => !v);
+    onSelectFolder(isSelected ? null : folder.path);
+  };
 
   if (isSection) {
     return (
@@ -89,8 +110,8 @@ export function Folder({
         onDrop={handleDrop}
       >
         <div
-          className={styles.sectionLabel}
-          onClick={() => setOpen((v) => !v)}
+          className={`${styles.sectionLabel} ${isSelected ? styles.selected : ''}`}
+          onClick={handleHeaderClick}
           onContextMenu={handleContextMenu}
         >
           <Arrow open={open} />
@@ -107,6 +128,8 @@ export function Folder({
             onRenameConfirm={onRenameConfirm}
             onRenameCancel={onRenameCancel}
             onMoveFile={onMoveFile}
+            selectedFolder={selectedFolder}
+            onSelectFolder={onSelectFolder}
           />
         )}
       </div>
@@ -121,9 +144,9 @@ export function Folder({
       onDrop={handleDrop}
     >
       <div
-        className={styles.header}
+        className={`${styles.header} ${isSelected ? styles.selected : ''}`}
         style={{ paddingLeft: `${12 + depth * 12}px` }}
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleHeaderClick}
         onContextMenu={handleContextMenu}
       >
         <Arrow open={open} />
@@ -138,6 +161,8 @@ export function Folder({
           onRenameConfirm={onRenameConfirm}
           onRenameCancel={onRenameCancel}
           onMoveFile={onMoveFile}
+          selectedFolder={selectedFolder}
+          onSelectFolder={onSelectFolder}
         />
       )}
     </div>

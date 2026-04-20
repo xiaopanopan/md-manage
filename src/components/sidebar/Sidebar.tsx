@@ -70,6 +70,8 @@ export function Sidebar() {
   const openSettings = useAppStore((s) => s.openSettings);
 
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [rootDragOver, setRootDragOver] = useState(false);
 
   // 响应右键菜单动作
   useEffect(() => {
@@ -189,17 +191,18 @@ export function Sidebar() {
   };
 
   const handleNewFile = async () => {
-    const draftsDir = workspace ? `${workspace}/DRAFTS` : null;
-    if (!draftsDir || !window.electronAPI) return;
-    const newPath = await window.electronAPI.file.create(draftsDir, `untitled-${Date.now()}`);
+    if (!workspace || !window.electronAPI) return;
+    const targetDir = selectedFolder ?? workspace;
+    const newPath = await window.electronAPI.file.create(targetDir, `untitled-${Date.now()}`);
     await refreshFiles();
     setRenamingPath(newPath);
   };
 
   const handleNewFolder = async () => {
     if (!workspace || !window.electronAPI) return;
+    const targetDir = selectedFolder ?? workspace;
     const name = `新文件夹-${Date.now()}`;
-    const dirPath = `${workspace}/DRAFTS/${name}`;
+    const dirPath = `${targetDir}/${name}`;
     await window.electronAPI.file.write(`${dirPath}/.gitkeep`, '');
     await refreshFiles();
   };
@@ -272,8 +275,32 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* 文件列表 */}
-      <div className={styles.fileList}>
+      {/* 文件列表（也是根目录 drop zone） */}
+      <div
+        className={`${styles.fileList} ${rootDragOver ? styles.rootDropTarget : ''}`}
+        onClick={(e) => {
+          // 点击空白区域取消选中
+          if (e.target === e.currentTarget) setSelectedFolder(null);
+        }}
+        onDragOver={(e) => {
+          if (!workspace) return;
+          if (!e.dataTransfer.types.includes('application/x-file-path')) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (!rootDragOver) setRootDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+          setRootDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setRootDragOver(false);
+          if (!workspace) return;
+          const srcPath = e.dataTransfer.getData('application/x-file-path');
+          if (srcPath) handleMoveFile(srcPath, workspace);
+        }}
+      >
         {!workspace ? (
           <div className={styles.emptyState}>
             <span>尚未选择工作区</span>
@@ -294,6 +321,8 @@ export function Sidebar() {
                 onRenameConfirm={handleRenameConfirm}
                 onRenameCancel={handleRenameCancel}
                 onMoveFile={handleMoveFile}
+                selectedFolder={selectedFolder}
+                onSelectFolder={setSelectedFolder}
               />
             ))}
 
@@ -308,6 +337,8 @@ export function Sidebar() {
                   onRenameConfirm={handleRenameConfirm}
                   onRenameCancel={handleRenameCancel}
                   onMoveFile={handleMoveFile}
+                  selectedFolder={selectedFolder}
+                  onSelectFolder={setSelectedFolder}
                 />
               ) : (
                 <FileItem

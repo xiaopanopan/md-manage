@@ -96,6 +96,17 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 8px 8px;
+  transition: background var(--transition-fast);
+}
+
+.fileList.rootDropTarget {
+  background: rgba(0, 0, 0, 0.04);
+  outline: 1px dashed var(--color-gray-500);
+  outline-offset: -4px;
+}
+
+[data-theme="dark"] .fileList.rootDropTarget {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 /* 空状态 */
