@@ -17,6 +17,7 @@ import {
   indentWithTab,
 } from '@codemirror/commands';
 import { search, searchKeymap } from '@codemirror/search';
+import { createSearchPanel } from './searchPanel';
 import {
   syntaxHighlighting,
   indentOnInput,
@@ -247,7 +248,7 @@ export function createExtensions(
     EditorState.allowMultipleSelections.of(true),
 
     // 搜索（Cmd+F / Cmd+H）
-    search(),
+    search({ createPanel: createSearchPanel }),
 
     // 快捷键
     keymap.of([

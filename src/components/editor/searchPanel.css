@@ -1,0 +1,114 @@
+/* ── 自定义搜索面板 ───────────────────────────────────────── */
+.cm-editor .dz-search-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border-light);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+}
+
+.cm-editor .dz-search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cm-editor .dz-search-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--bg-light);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.cm-editor .dz-search-input-wrap:focus-within {
+  border-color: var(--color-gray-500);
+}
+
+.cm-editor .dz-search-icon {
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+.cm-editor .dz-search-input {
+  flex: 1;
+  height: 100%;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--color-black);
+  background: transparent;
+  border: none;
+  outline: none;
+  user-select: text;
+}
+
+.cm-editor .dz-search-input::placeholder {
+  color: var(--color-gray-300);
+}
+
+.cm-editor .dz-search-count {
+  flex-shrink: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gray-500);
+  min-width: 44px;
+  text-align: center;
+}
+
+.cm-editor .dz-search-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.cm-editor .dz-search-btn:hover {
+  background: var(--bg-hover);
+  color: var(--color-black);
+}
+
+.cm-editor .dz-search-btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.cm-editor .dz-search-btn.dz-toggle.active {
+  background: var(--color-black);
+  color: var(--bg-white);
+}
+
+.cm-editor .dz-replace-btn {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--color-gray-800);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.cm-editor .dz-replace-btn:hover {
+  background: var(--bg-hover);
+}
