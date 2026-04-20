@@ -15,8 +15,11 @@
 
 .content {
   max-width: var(--content-width);
+  min-height: 100%;
   margin: 0 auto;
   padding: 0 24px 120px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 空状态 */

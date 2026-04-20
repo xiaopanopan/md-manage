@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useEffect, useRef, useCallback, useState } from 'react';
 import { useAppStore } from '@/stores/appStore';
 import {
   useCurrentFile,
@@ -9,6 +9,7 @@ import {
 } from '@/hooks/useAppStore';
 import { EditorCore } from './EditorCore';
 import { FileInfoBar } from './FileInfoBar';
+import { StatusBar } from './StatusBar';
 import styles from './EditorArea.module.css';
 
 export function EditorArea() {
@@ -25,6 +26,12 @@ export function EditorArea() {
     if (theme === 'light') return false;
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   }, [theme]);
+
+  // 光标位置（用于 StatusBar）
+  const [cursor, setCursor] = useState({ line: 1, col: 1 });
+  const handleCursorChange = useCallback((line: number, col: number) => {
+    setCursor({ line, col });
+  }, []);
 
   const handleContentChange = useCallback(
     (newContent: string) => setContent(newContent),
@@ -88,10 +95,12 @@ export function EditorArea() {
             onBodyChange={handleContentChange}
             isDark={isDark}
             filePath={currentFile}
+            onCursorChange={handleCursorChange}
           />
         </div>
       </div>
       <FileInfoBar content={currentContent} isDirty={isDirty} />
+      <StatusBar line={cursor.line} col={cursor.col} />
     </div>
   );
 }

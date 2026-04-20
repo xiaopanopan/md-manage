@@ -10,17 +10,14 @@ import {
 import styles from './EditorCore.module.css';
 
 interface Props {
-  /** Markdown body (without front matter) */
   body: string;
-  /** Called when user edits the body */
   onBodyChange: (body: string) => void;
-  /** Current resolved theme */
   isDark: boolean;
-  /** Current file path — forces editor reset when file switches */
   filePath: string | null;
+  onCursorChange?: (line: number, col: number) => void;
 }
 
-export function EditorCore({ body, onBodyChange, isDark, filePath }: Props) {
+export function EditorCore({ body, onBodyChange, isDark, filePath, onCursorChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   // Ref to track latest body to avoid circular updates
@@ -40,7 +37,7 @@ export function EditorCore({ body, onBodyChange, isDark, filePath }: Props) {
 
     const state = EditorState.create({
       doc: body,
-      extensions: createExtensions(isDark, handleChange),
+      extensions: createExtensions(isDark, handleChange, onCursorChange),
     });
 
     const view = new EditorView({ state, parent: containerRef.current });

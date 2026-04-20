@@ -71,7 +71,8 @@ const darkHighlight = HighlightStyle.define([
 const lightBaseTheme = EditorView.theme({
   '&': {
     background: 'transparent',
-    height: 'auto',
+    height: '100%',
+    minHeight: '100%',
   },
   '.cm-scroller': {
     overflow: 'visible',
@@ -107,7 +108,8 @@ const darkBaseTheme = EditorView.theme(
   {
     '&': {
       background: 'transparent',
-      height: 'auto',
+      height: '100%',
+      minHeight: '100%',
     },
     '.cm-scroller': {
       overflow: 'visible',
@@ -203,7 +205,8 @@ function insertText(view: EditorView, text: string): void {
 // ── 完整扩展集 ────────────────────────────────────────────
 export function createExtensions(
   isDark: boolean,
-  onChange: (content: string) => void
+  onChange: (content: string) => void,
+  onCursorChange?: (line: number, col: number) => void
 ) {
   return [
     // 主题（可热切换）
@@ -243,6 +246,11 @@ export function createExtensions(
     EditorView.updateListener.of((update: ViewUpdate) => {
       if (update.docChanged) {
         onChange(update.state.doc.toString());
+      }
+      if (onCursorChange && (update.docChanged || update.selectionSet)) {
+        const pos = update.state.selection.main.head;
+        const line = update.state.doc.lineAt(pos);
+        onCursorChange(line.number, pos - line.from + 1);
       }
     }),
   ];

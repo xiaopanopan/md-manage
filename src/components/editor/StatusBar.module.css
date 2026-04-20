@@ -1,0 +1,63 @@
+/* ── StatusBar ──────────────────────────────────────────── */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 28px;
+  padding: 0 24px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-light);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  background: var(--bg-white);
+  user-select: none;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-black);
+  margin-right: 5px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.liveTag {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-gray-800);
+}
+
+.encoding {
+  color: var(--color-gray-500);
+}
+
+.cursor {
+  font-family: var(--font-code);
+  font-size: 10px;
+  letter-spacing: 0;
+  color: var(--color-gray-800);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
