@@ -50,6 +50,13 @@ const AutoIcon = () => (
   </svg>
 );
 
+const SettingsIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <circle cx="8" cy="8" r="2" />
+    <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M3.5 12.5l1.4-1.4M11.1 4.9l1.4-1.4" />
+  </svg>
+);
+
 const SECTION_NAMES = ['DRAFTS', 'ARCHIVES'];
 
 export function Sidebar() {
@@ -60,6 +67,7 @@ export function Sidebar() {
   const setCurrentFile = useAppStore((s) => s.setCurrentFile);
   const theme = useAppStore((s) => s.theme);
   const setTheme = useAppStore((s) => s.setTheme);
+  const openSettings = useAppStore((s) => s.openSettings);
 
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
 
@@ -204,6 +212,13 @@ export function Sidebar() {
           {workspace ? workspace.split('/').pop() : 'Digital Zen'}
         </span>
         <div className={styles.toolbarActions}>
+          <button
+            className={styles.iconBtn}
+            data-tooltip="设置 / 使用说明 (⌘,)"
+            onClick={openSettings}
+          >
+            <SettingsIcon />
+          </button>
           <button
             className={styles.iconBtn}
             data-tooltip={`切换主题 (${themeLabel})`}
