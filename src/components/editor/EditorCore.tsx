@@ -14,10 +14,9 @@ interface Props {
   onBodyChange: (body: string) => void;
   isDark: boolean;
   filePath: string | null;
-  onCursorChange?: (line: number, col: number) => void;
 }
 
-export function EditorCore({ body, onBodyChange, isDark, filePath, onCursorChange }: Props) {
+export function EditorCore({ body, onBodyChange, isDark, filePath }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   // Ref to track latest body to avoid circular updates
@@ -37,7 +36,7 @@ export function EditorCore({ body, onBodyChange, isDark, filePath, onCursorChang
 
     const state = EditorState.create({
       doc: body,
-      extensions: createExtensions(isDark, handleChange, onCursorChange),
+      extensions: createExtensions(isDark, handleChange),
     });
 
     const view = new EditorView({ state, parent: containerRef.current });
