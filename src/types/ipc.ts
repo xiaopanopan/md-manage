@@ -39,7 +39,7 @@ export interface ContextMenuAPI {
 }
 
 export interface MenuAction {
-  type: 'openFile' | 'rename' | 'delete' | 'moveToArchives' | 'newFile' | 'newFolder';
+  type: 'delete' | 'newFile' | 'newFolder' | 'newFolderSibling';
   payload: Record<string, string>;
 }
 

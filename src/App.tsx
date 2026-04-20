@@ -121,6 +121,28 @@ export default function App() {
         switchMode(viewMode === 'edit' ? 'read' : 'edit');
         return;
       }
+
+      // Cmd+Backspace / Cmd+Delete → 删除当前文件
+      // 仅在焦点不在编辑器（CodeMirror）/输入框内时触发
+      if (mod && (e.key === 'Backspace' || e.key === 'Delete')) {
+        const target = e.target as HTMLElement | null;
+        const inEditable =
+          target?.closest('.cm-editor') ||
+          target?.closest('input, textarea, [contenteditable="true"]');
+        if (inEditable) return;
+        if (!currentFile) return;
+        e.preventDefault();
+        const name = currentFile.split('/').pop();
+        if (window.confirm(`确认删除 "${name}"？\n文件将移至废纸篓。`)) {
+          try {
+            await window.electronAPI?.file.delete(currentFile);
+            useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
+          } catch (err) {
+            console.error('[App] delete failed:', err);
+          }
+        }
+        return;
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);

@@ -20,33 +20,37 @@ export function registerContextMenuHandlers(): void {
         if (isFolder) {
           template = [
             new MenuItem({ label: '新建文件', click: () => send('newFile') }),
+            new MenuItem({ label: '新建文件夹', click: () => send('newFolderSibling') }),
             new MenuItem({ label: '新建子文件夹', click: () => send('newFolder') }),
             new MenuItem({ type: 'separator' }),
-            new MenuItem({ label: '重命名', click: () => send('rename') }),
-            new MenuItem({ type: 'separator' }),
             new MenuItem({
-              label: '在 Finder 中显示',
+              label: '在文件夹中打开',
+              accelerator: 'CmdOrCtrl+Shift+O',
               click: () => shell.showItemInFolder(filePath),
             }),
             new MenuItem({ type: 'separator' }),
-            new MenuItem({ label: '删除文件夹', click: () => send('delete') }),
+            new MenuItem({
+              label: '删除',
+              accelerator: 'CmdOrCtrl+Backspace',
+              click: () => send('delete'),
+            }),
           ];
         } else {
           template = [
-            new MenuItem({ label: '打开', click: () => send('openFile') }),
-            new MenuItem({ label: '重命名', click: () => send('rename') }),
+            new MenuItem({ label: '新建文件', click: () => send('newFile') }),
+            new MenuItem({ label: '新建文件夹', click: () => send('newFolder') }),
             new MenuItem({ type: 'separator' }),
             new MenuItem({
-              label: '移至 Archives',
-              click: () => send('moveToArchives'),
-            }),
-            new MenuItem({ type: 'separator' }),
-            new MenuItem({
-              label: '在 Finder 中显示',
+              label: '在文件夹中打开',
+              accelerator: 'CmdOrCtrl+Shift+O',
               click: () => shell.showItemInFolder(filePath),
             }),
             new MenuItem({ type: 'separator' }),
-            new MenuItem({ label: '删除', click: () => send('delete') }),
+            new MenuItem({
+              label: '删除',
+              accelerator: 'CmdOrCtrl+Backspace',
+              click: () => send('delete'),
+            }),
           ];
         }
       } else {

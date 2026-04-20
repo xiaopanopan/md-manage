@@ -64,7 +64,6 @@ export function Sidebar() {
   const workspace = useWorkspace();
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const setFiles = useAppStore((s) => s.setFiles);
-  const setCurrentFile = useAppStore((s) => s.setCurrentFile);
   const theme = useAppStore((s) => s.theme);
   const setTheme = useAppStore((s) => s.setTheme);
   const openSettings = useAppStore((s) => s.openSettings);
@@ -91,24 +90,21 @@ export function Sidebar() {
     const unsub = window.electronAPI.onMenuAction(async (action: MenuAction) => {
       const { type, payload } = action;
       const targetPath = payload.path ?? '';
+      const isFolder = payload.isFolder === 'true';
+      // 目标所在的目录（右键文件 → 文件父目录，右键文件夹 → 该文件夹）
+      const contextDir = isFolder
+        ? targetPath
+        : targetPath.slice(0, targetPath.lastIndexOf('/'));
 
       switch (type) {
-        case 'openFile': {
-          try {
-            const content = await window.electronAPI.file.read(targetPath);
-            setCurrentFile(targetPath, content);
-          } catch (e) {
-            console.error('[Sidebar] openFile failed:', e);
-          }
-          break;
-        }
-        case 'rename': {
-          setRenamingPath(targetPath);
-          break;
-        }
         case 'delete': {
-          if (window.confirm(`确认删除 "${targetPath.split('/').pop()}"？\n文件将移至废纸篓。`)) {
+          const name = targetPath.split('/').pop();
+          if (window.confirm(`确认删除 "${name}"？\n${isFolder ? '文件夹' : '文件'}将移至废纸篓。`)) {
             try {
+              // 若正在打开此文件，清空当前文件
+              if (useAppStore.getState().currentFile === targetPath) {
+                useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
+              }
               await window.electronAPI.file.delete(targetPath);
               await refreshFiles();
             } catch (e) {
@@ -117,27 +113,39 @@ export function Sidebar() {
           }
           break;
         }
-        case 'moveToArchives': {
-          if (!workspace) break;
-          const fileName = targetPath.split('/').pop() ?? '';
-          const dest = `${workspace}/ARCHIVES/${fileName}`;
-          try {
-            await window.electronAPI.file.rename(targetPath, dest);
-            await refreshFiles();
-          } catch (e) {
-            console.error('[Sidebar] moveToArchives failed:', e);
-          }
-          break;
-        }
         case 'newFile': {
-          const dir = targetPath; // targetPath is folder path for newFile
           const name = `untitled-${Date.now()}.md`;
           try {
-            const newPath = await window.electronAPI.file.create(dir, name);
+            const newPath = await window.electronAPI.file.create(contextDir, name);
             await refreshFiles();
             setRenamingPath(newPath);
           } catch (e) {
             console.error('[Sidebar] newFile failed:', e);
+          }
+          break;
+        }
+        case 'newFolder': {
+          // 文件右键：在文件所在目录创建；文件夹右键：在该文件夹内创建子文件夹
+          const name = `新文件夹-${Date.now()}`;
+          const dirPath = `${contextDir}/${name}`;
+          try {
+            await window.electronAPI.file.write(`${dirPath}/.gitkeep`, '');
+            await refreshFiles();
+          } catch (e) {
+            console.error('[Sidebar] newFolder failed:', e);
+          }
+          break;
+        }
+        case 'newFolderSibling': {
+          // 文件夹右键"新建文件夹"：在其父目录创建兄弟文件夹
+          const parent = targetPath.slice(0, targetPath.lastIndexOf('/'));
+          const name = `新文件夹-${Date.now()}`;
+          const dirPath = `${parent}/${name}`;
+          try {
+            await window.electronAPI.file.write(`${dirPath}/.gitkeep`, '');
+            await refreshFiles();
+          } catch (e) {
+            console.error('[Sidebar] newFolderSibling failed:', e);
           }
           break;
         }
