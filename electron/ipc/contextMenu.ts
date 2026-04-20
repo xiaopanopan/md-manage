@@ -15,6 +15,7 @@ export function registerContextMenuHandlers(): void {
 
       if (type === 'file') {
         const filePath = data.path ?? '';
+        const isFolder = data.isFolder === 'true';
 
         template = [
           new MenuItem({ label: '新建文件', click: () => send('newFile') }),
@@ -28,7 +29,8 @@ export function registerContextMenuHandlers(): void {
           new MenuItem({ type: 'separator' }),
           new MenuItem({
             label: '删除',
-            accelerator: 'CmdOrCtrl+Backspace',
+            // 仅文件显示快捷键，文件夹不支持快捷删除
+            ...(isFolder ? {} : { accelerator: 'CmdOrCtrl+Backspace' }),
             click: () => send('delete'),
           }),
         ];
