@@ -140,6 +140,22 @@ export default function App() {
         }
         return;
       }
+
+      // Enter → 重命名当前文件（仅在焦点不在编辑器/输入框时）
+      if (!mod && e.key === 'Enter') {
+        const target = e.target as HTMLElement | null;
+        const inEditable =
+          target?.closest('.cm-editor') ||
+          target?.closest('input, textarea, [contenteditable="true"]') ||
+          target?.tagName === 'BUTTON';
+        if (inEditable) return;
+        if (!currentFile) return;
+        e.preventDefault();
+        window.dispatchEvent(
+          new CustomEvent('md-manage:rename', { detail: { path: currentFile } })
+        );
+        return;
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);

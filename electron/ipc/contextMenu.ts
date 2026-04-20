@@ -22,6 +22,11 @@ export function registerContextMenuHandlers(): void {
           new MenuItem({ label: '新建子文件夹', click: () => send('newFolder') }),
           new MenuItem({ type: 'separator' }),
           new MenuItem({
+            label: '重命名',
+            accelerator: 'Enter',
+            click: () => send('rename'),
+          }),
+          new MenuItem({
             label: '在文件夹中打开',
             accelerator: 'CmdOrCtrl+Shift+O',
             click: () => shell.showItemInFolder(filePath),
@@ -29,7 +34,6 @@ export function registerContextMenuHandlers(): void {
           new MenuItem({ type: 'separator' }),
           new MenuItem({
             label: '删除',
-            // 仅文件显示快捷键，文件夹不支持快捷删除
             ...(isFolder ? {} : { accelerator: 'CmdOrCtrl+Backspace' }),
             click: () => send('delete'),
           }),

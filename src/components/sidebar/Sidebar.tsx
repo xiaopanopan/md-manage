@@ -84,6 +84,16 @@ export function Sidebar() {
     return () => window.removeEventListener('dragend', clear);
   }, []);
 
+  // 全局 Enter 键触发重命名（由 App.tsx 派发）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ path: string }>;
+      if (custom.detail?.path) setRenamingPath(custom.detail.path);
+    };
+    window.addEventListener('md-manage:rename', handler);
+    return () => window.removeEventListener('md-manage:rename', handler);
+  }, []);
+
   // 响应右键菜单动作
   useEffect(() => {
     if (!window.electronAPI?.onMenuAction) return;
@@ -107,6 +117,10 @@ export function Sidebar() {
           } catch (e) {
             console.error('[Sidebar] delete failed:', e);
           }
+          break;
+        }
+        case 'rename': {
+          setRenamingPath(targetPath);
           break;
         }
         case 'newFile': {
