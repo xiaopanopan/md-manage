@@ -56,7 +56,7 @@ export function registerImportHandlers(): void {
     const win = BrowserWindow.getFocusedWindow();
     if (!workspace || !win) throw new Error('No workspace configured');
 
-    const target = destDir ?? path.join(workspace, 'DRAFTS');
+    const target = destDir ?? workspace;
 
     const { filePaths, canceled } = await dialog.showOpenDialog(win, {
       title: '导入 Markdown 文件',
@@ -81,7 +81,7 @@ export function registerImportHandlers(): void {
     const win = BrowserWindow.getFocusedWindow();
     if (!workspace || !win) throw new Error('No workspace configured');
 
-    const target = destDir ?? path.join(workspace, 'DRAFTS');
+    const target = destDir ?? workspace;
 
     const { filePaths, canceled } = await dialog.showOpenDialog(win, {
       title: '导入文件夹',

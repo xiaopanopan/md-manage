@@ -27,7 +27,6 @@ const FolderIcon = ({ open }: { open: boolean }) => (
 interface Props {
   folder: FileNode;
   depth?: number;
-  isSection?: boolean;
   renamingPath: string | null;
   onRenameConfirm: (file: FileNode, newName: string) => void;
   onRenameCancel: () => void;
@@ -37,7 +36,6 @@ interface Props {
 export function Folder({
   folder,
   depth = 0,
-  isSection = false,
   renamingPath,
   onRenameConfirm,
   onRenameCancel,
@@ -94,40 +92,6 @@ export function Folder({
 
   const children = folder.children ?? [];
   const isRenaming = renamingPath === folder.path;
-
-  if (isSection) {
-    // DRAFTS/ARCHIVES 顶级分区不可拖动，也不可重命名
-    return (
-      <div
-        className={`${styles.folder} ${isDragOver ? styles.dropTarget : ''}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <div
-          className={styles.sectionLabel}
-          onClick={() => setOpen((v) => !v)}
-          onContextMenu={handleContextMenu}
-        >
-          <Arrow open={open} />
-          <span>{folder.name}</span>
-          <span style={{ marginLeft: 'auto', opacity: 0.4, fontSize: '10px' }}>
-            {children.filter((c) => c.type === 'file').length}
-          </span>
-        </div>
-        {open && (
-          <FileTree
-            nodes={children}
-            depth={depth + 1}
-            renamingPath={renamingPath}
-            onRenameConfirm={onRenameConfirm}
-            onRenameCancel={onRenameCancel}
-            onMoveFile={onMoveFile}
-          />
-        )}
-      </div>
-    );
-  }
 
   return (
     <div

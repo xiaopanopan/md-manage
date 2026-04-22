@@ -57,7 +57,6 @@ const SettingsIcon = () => (
     </svg>
 );
 
-const SECTION_NAMES = ['DRAFTS', 'ARCHIVES'];
 
 export function Sidebar() {
     const files = useFiles();
@@ -250,15 +249,6 @@ export function Sidebar() {
     const themeIcon = theme === 'light' ? <SunIcon /> : theme === 'dark' ? <MoonIcon /> : <AutoIcon />;
     const themeLabel = theme === 'light' ? '浅色' : theme === 'dark' ? '深色' : '跟随系统';
 
-    // 将 DRAFTS / ARCHIVES 提取为顶层分区，其余直接展示
-    const sections = SECTION_NAMES
-        .map((name) => files.find((f) => f.type === 'folder' && f.name === name))
-        .filter(Boolean) as FileNode[];
-
-    const otherNodes = files.filter(
-        (f) => !(f.type === 'folder' && SECTION_NAMES.includes(f.name))
-    );
-
     return (
         <aside className={styles.sidebar}>
             {/* macOS Traffic Lights 空间 */}
@@ -341,22 +331,7 @@ export function Sidebar() {
                     </div>
                 ) : (
                     <>
-                        {/* DRAFTS / ARCHIVES 分区 */}
-                        {sections.map((folder) => (
-                            <Folder
-                                key={folder.path}
-                                folder={folder}
-                                depth={0}
-                                isSection
-                                renamingPath={renamingPath}
-                                onRenameConfirm={handleRenameConfirm}
-                                onRenameCancel={handleRenameCancel}
-                                onMoveFile={handleMoveFile}
-                            />
-                        ))}
-
-                        {/* 其他顶层文件/文件夹 */}
-                        {otherNodes.map((node) =>
+                        {files.map((node) =>
                             node.type === 'folder' ? (
                                 <Folder
                                     key={node.path}

@@ -56,15 +56,7 @@ export function stopWatcher(): void {
 
 // ── 工作区初始化 ───────────────────────────────────────────
 async function initWorkspace(workspacePath: string): Promise<void> {
-  const dirs = [
-    path.join(workspacePath, 'DRAFTS'),
-    path.join(workspacePath, 'ARCHIVES'),
-    path.join(workspacePath, '.md-manage', 'images'),
-    path.join(workspacePath, '.md-manage', 'history'),
-  ];
-  for (const dir of dirs) {
-    await fs.mkdir(dir, { recursive: true });
-  }
+  await fs.mkdir(path.join(workspacePath, '.md-manage', 'images'), { recursive: true });
 }
 
 // ── 递归列出目录（仅 .md 文件 + 子目录）────────────────────

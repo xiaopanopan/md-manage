@@ -38,30 +38,6 @@
   color: var(--bg-white);
 }
 
-/* DRAFTS / ARCHIVES 顶层分类标题 */
-.sectionLabel {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  height: 28px;
-  padding: 0 8px;
-  margin-top: 8px;
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--color-gray-500);
-  cursor: pointer;
-  user-select: none;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition-fast);
-}
-
-.sectionLabel:hover {
-  background: var(--bg-hover);
-}
-
 .arrow {
   width: 12px;
   height: 12px;
