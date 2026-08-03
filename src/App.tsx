@@ -32,6 +32,12 @@ function applyTheme(theme: Theme, systemDark: boolean) {
   }
 }
 
+function isSameOrDescendant(candidate: string, parent: string): boolean {
+  return candidate === parent
+    || candidate.startsWith(`${parent}/`)
+    || candidate.startsWith(`${parent}\\`);
+}
+
 export default function App() {
   const theme = useAppStore((s) => s.theme);
   const workspace = useAppStore((s) => s.workspace);
@@ -97,6 +103,14 @@ export default function App() {
     const onKeyDown = async (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
 
+      if (e.key === 'Escape') {
+        const target = e.target as HTMLElement | null;
+        if (!target?.closest('input, textarea, [contenteditable="true"], [role="dialog"]')) {
+          useAppStore.getState().setSelectedEntry(null);
+        }
+        return;
+      }
+
       // Cmd+, → 打开设置
       if (mod && e.key === ',') {
         e.preventDefault();
@@ -129,12 +143,23 @@ export default function App() {
           target?.closest('.cm-editor') ||
           target?.closest('input, textarea, [contenteditable="true"]');
         if (inEditable) return;
-        if (!currentFile) return;
+        const state = useAppStore.getState();
+        const targetPath = state.selectedEntry?.path ?? currentFile;
+        if (!targetPath) return;
         e.preventDefault();
+        const label = targetPath.split(/[\\/]/).pop() ?? targetPath;
+        if (!window.confirm(`确定将“${label}”移到废纸篓吗？`)) return;
         try {
-          await flushCurrentDocument();
-          await window.desktopAPI?.file.delete(currentFile);
-          useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
+          if (currentFile && isSameOrDescendant(currentFile, targetPath)) {
+            await flushCurrentDocument();
+          }
+          await window.desktopAPI?.file.delete(targetPath);
+          useAppStore.setState({
+            selectedEntry: null,
+            ...(currentFile && isSameOrDescendant(currentFile, targetPath)
+              ? { currentFile: null, currentContent: '', isDirty: false }
+              : {}),
+          });
         } catch (err) {
           console.error('[App] delete failed:', err);
           window.alert('无法移到废纸篓，文件没有被删除。');
@@ -150,10 +175,11 @@ export default function App() {
           target?.closest('input, textarea, [contenteditable="true"]') ||
           target?.tagName === 'BUTTON';
         if (inEditable) return;
-        if (!currentFile) return;
+        const targetPath = useAppStore.getState().selectedEntry?.path ?? currentFile;
+        if (!targetPath) return;
         e.preventDefault();
         window.dispatchEvent(
-          new CustomEvent('md-manage:rename', { detail: { path: currentFile } })
+          new CustomEvent('md-manage:rename', { detail: { path: targetPath } })
         );
         return;
       }

@@ -4,13 +4,13 @@
   transition: background var(--transition-fast);
 }
 
-.folder.dropTarget {
+.header.dropTarget {
   background: rgba(0, 0, 0, 0.06);
   outline: 1px dashed var(--color-gray-500);
   outline-offset: -1px;
 }
 
-[data-theme="dark"] .folder.dropTarget {
+[data-theme="dark"] .header.dropTarget {
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -33,7 +33,7 @@
   background: var(--bg-hover);
 }
 
-.header.active {
+.header.selected {
   background: var(--color-black);
   color: var(--bg-white);
 }

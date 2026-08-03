@@ -24,6 +24,15 @@
   font-weight: 600;
 }
 
+.location {
+  margin: -6px 0 12px;
+  overflow: hidden;
+  color: var(--color-gray-500);
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .dialog input {
   box-sizing: border-box;
   width: 100%;

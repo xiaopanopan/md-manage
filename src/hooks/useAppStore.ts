@@ -9,12 +9,16 @@ export const useCurrentContent = () => useStore((s) => s.currentContent);
 export const useIsDirty = () => useStore((s) => s.isDirty);
 export const useFiles = () => useStore((s) => s.files);
 export const useRecentFiles = () => useStore((s) => s.recentFiles);
+export const useSelectedEntry = () => useStore((s) => s.selectedEntry);
+export const useExpandedPaths = () => useStore((s) => s.expandedPaths);
 
 // ── UI 状态 ──
 export const useViewMode = () => useStore((s) => s.viewMode);
 export const useTheme = () => useStore((s) => s.theme);
 export const useSidebarVisible = () => useStore((s) => s.sidebarVisible);
 export const useSettingsOpen = () => useStore((s) => s.settingsOpen);
+export const useExplorerSort = () =>
+  useStore((s) => ({ mode: s.explorerSortMode, direction: s.explorerSortDirection }));
 
 // ── 工作区 ──
 export const useWorkspace = () => useStore((s) => s.workspace);

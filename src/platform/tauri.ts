@@ -14,9 +14,11 @@ function emitMenuAction(type: MenuAction['type'], payload: Record<string, string
 
 async function showFileMenu(data: Record<string, string>) {
   const action = (type: MenuAction['type']) => () => emitMenuAction(type, data);
-  const items = await Promise.all([
+  const createItems = await Promise.all([
     MenuItem.new({ text: '新建文件', action: action('newFile') }),
     MenuItem.new({ text: '新建子文件夹', action: action('newFolder') }),
+  ]);
+  const itemActions = data.isRoot === 'true' ? [] : await Promise.all([
     PredefinedMenuItem.new({ item: 'Separator' }),
     MenuItem.new({ text: '重命名', accelerator: 'CmdOrCtrl+Enter', action: action('rename') }),
     MenuItem.new({
@@ -27,6 +29,7 @@ async function showFileMenu(data: Record<string, string>) {
     PredefinedMenuItem.new({ item: 'Separator' }),
     MenuItem.new({ text: '删除', action: action('delete') }),
   ]);
+  const items = [...createItems, ...itemActions];
   const menu = await Menu.new({ items });
   await menu.popup();
   await menu.close();

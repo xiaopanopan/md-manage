@@ -15,7 +15,11 @@
 
 - 选择并记忆本地工作区。
 - 递归展示目录和 `.md`、`.markdown` 文件。
+- 默认按“文件夹优先 + 名称自然升序”展示，并支持名称降序、最近修改和类型排序。
+- 文件树选择与当前编辑文档分离；取消选择不会关闭正在编辑的内容。
 - 新建文件/文件夹、重命名、移动和移到系统废纸篓。
+- 新建位置根据文件树选择确定，并在创建后自动展开和定位。
+- 拖拽移动包含目标确认、折叠目录延迟展开和一次性撤销。
 - 同名目标默认拒绝，避免静默覆盖。
 - Rust WorkspaceGuard 拒绝 `..`、绝对路径越界和符号链接逃逸。
 - Rust `notify` 监听工作区变化并通知文件树刷新。
@@ -147,7 +151,7 @@ md-manage/
 
 - TypeScript 检查通过。
 - Rust `cargo check` 与 Clippy `-D warnings` 通过。
-- 4 个前端测试文件、21 项测试通过。
+- 6 个前端测试文件、31 项测试通过。
 - 3 项 Rust WorkspaceGuard 测试通过，包含父路径和符号链接越界。
 - Vite 生产构建通过。
 - Tauri macOS ARM64 release、`.app` 和 `.dmg` 构建通过。
@@ -164,6 +168,7 @@ md-manage/
 | `RISK-CONFIG-MIGRATION` | 中 | 待验证 | 旧 Electron 配置导入逻辑尚未在三平台验证 |
 | `RISK-BUNDLE-SIZE` | 中 | 待优化 | Renderer 包含完整 CodeMirror language-data，主 chunk 约 1.3 MB |
 | `RISK-SIGNING` | 中 | 待配置 | macOS 公证、Windows 签名和正式更新通道尚未配置 |
+| `RISK-UNDO-SCOPE` | 中 | 部分实现 | 当前仅支持撤销最近一次移动；系统废纸篓无法提供可靠的跨平台恢复句柄 |
 
 ## 文档
 
@@ -172,6 +177,7 @@ md-manage/
 - [Tauri 迁移技术方案与实施状态](./document/Tauri迁移技术方案.md)
 - [项目调研报告](./document/项目调研报告.md)
 - [项目优化与重构方案](./document/项目优化与重构方案.md)
+- [左侧文件管理系统优化技术方案](./document/左侧文件管理系统优化技术方案.md)
 
 ## License
 

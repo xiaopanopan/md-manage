@@ -3,12 +3,14 @@ import styles from './CreateDialog.module.css';
 
 interface Props {
   kind: 'file' | 'folder';
+  initialName: string;
+  targetLabel: string;
   onConfirm: (name: string) => Promise<void>;
   onCancel: () => void;
 }
 
-export function CreateDialog({ kind, onConfirm, onCancel }: Props) {
-  const [name, setName] = useState(kind === 'file' ? 'untitled.md' : '新文件夹');
+export function CreateDialog({ kind, initialName, targetLabel, onConfirm, onCancel }: Props) {
+  const [name, setName] = useState(initialName);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +58,7 @@ export function CreateDialog({ kind, onConfirm, onCancel }: Props) {
         onMouseDown={(event) => event.stopPropagation()}
       >
         <h2 id="create-dialog-title">{kind === 'file' ? '新建 Markdown 文件' : '新建文件夹'}</h2>
+        <p className={styles.location}>位置：{targetLabel}</p>
         <input
           ref={inputRef}
           value={name}

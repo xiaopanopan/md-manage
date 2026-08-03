@@ -158,7 +158,16 @@ fn list_dir(dir: &Path, depth: usize) -> Result<Vec<FileNode>> {
             });
         }
     }
-    nodes.sort_by(|a, b| b.modified_at.cmp(&a.modified_at));
+    // Keep filesystem responses deterministic. User-facing natural sorting is
+    // applied in the renderer so presentation preferences stay out of Rust.
+    nodes.sort_by(|a, b| {
+        let a_rank = if a.node_type == "folder" { 0 } else { 1 };
+        let b_rank = if b.node_type == "folder" { 0 } else { 1 };
+        a_rank
+            .cmp(&b_rank)
+            .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+            .then_with(|| a.name.cmp(&b.name))
+    });
     Ok(nodes)
 }
 
