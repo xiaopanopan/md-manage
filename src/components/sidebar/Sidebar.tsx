@@ -6,6 +6,7 @@ import { useAppStore } from '@/stores/appStore';
 import { Folder } from './Folder';
 import { FileItem } from './FileItem';
 import { flushCurrentDocument, openDocument } from '@/services/documentSession';
+import { CreateDialog } from '@/components/dialogs/CreateDialog';
 import styles from './Sidebar.module.css';
 
 function isSameOrDescendant(candidate: string, parent: string): boolean {
@@ -25,11 +26,6 @@ function findFile(nodes: FileNode[], targetPath: string): FileNode | undefined {
         if (found) return found;
     }
     return undefined;
-}
-
-function requestName(message: string, initialValue: string): string | null {
-    const value = window.prompt(message, initialValue)?.trim();
-    return value || null;
 }
 
 // ── 图标 ─────────────────────────────────────────────────────
@@ -94,6 +90,10 @@ export function Sidebar() {
 
     const [renamingPath, setRenamingPath] = useState<string | null>(null);
     const [rootDragOver, setRootDragOver] = useState(false);
+    const [creating, setCreating] = useState<{
+        kind: 'file' | 'folder';
+        targetDir: string;
+    } | null>(null);
 
     const currentFile = useCurrentFile();
     // 活动目录：当前打开文件所在目录；否则工作区根目录
@@ -153,28 +153,11 @@ export function Sidebar() {
                     break;
                 }
                 case 'newFile': {
-                    const name = requestName('新建 Markdown 文件', 'untitled.md');
-                    if (!name) break;
-                    try {
-                        const newPath = await window.desktopAPI.file.create(contextDir, name);
-                        await refreshFiles();
-                        await openDocument(newPath);
-                    } catch (e) {
-                        console.error('[Sidebar] newFile failed:', e);
-                        window.alert('创建失败：名称可能已存在或不可用。');
-                    }
+                    setCreating({ kind: 'file', targetDir: contextDir });
                     break;
                 }
                 case 'newFolder': {
-                    const name = requestName('新建文件夹', '新文件夹');
-                    if (!name) break;
-                    try {
-                        await window.desktopAPI.file.createFolder(contextDir, name);
-                        await refreshFiles();
-                    } catch (e) {
-                        console.error('[Sidebar] newFolder failed:', e);
-                        window.alert('创建失败：名称可能已存在或不可用。');
-                    }
+                    setCreating({ kind: 'folder', targetDir: contextDir });
                     break;
                 }
             }
@@ -271,33 +254,29 @@ export function Sidebar() {
         }
     };
 
-    const handleNewFile = async () => {
+    const handleNewFile = () => {
         if (!workspace || !window.desktopAPI) return;
         const targetDir = activeDir ?? workspace;
-        const name = requestName('新建 Markdown 文件', 'untitled.md');
-        if (!name) return;
-        try {
-            const newPath = await window.desktopAPI.file.create(targetDir, name);
-            await refreshFiles();
-            await openDocument(newPath);
-        } catch (err) {
-            console.error('[Sidebar] create file failed:', err);
-            window.alert('创建失败：名称可能已存在或不可用。');
-        }
+        setCreating({ kind: 'file', targetDir });
     };
 
-    const handleNewFolder = async () => {
+    const handleNewFolder = () => {
         if (!workspace || !window.desktopAPI) return;
         const targetDir = activeDir ?? workspace;
-        const name = requestName('新建文件夹', '新文件夹');
-        if (!name) return;
-        try {
-            await window.desktopAPI.file.createFolder(targetDir, name);
+        setCreating({ kind: 'folder', targetDir });
+    };
+
+    const handleCreateConfirm = async (name: string) => {
+        if (!creating) return;
+        if (creating.kind === 'file') {
+            const newPath = await window.desktopAPI.file.create(creating.targetDir, name);
             await refreshFiles();
-        } catch (err) {
-            console.error('[Sidebar] create folder failed:', err);
-            window.alert('创建失败：名称可能已存在或不可用。');
+            await openDocument(newPath);
+        } else {
+            await window.desktopAPI.file.createFolder(creating.targetDir, name);
+            await refreshFiles();
         }
+        setCreating(null);
     };
 
     const handleThemeToggle = () => {
@@ -415,6 +394,13 @@ export function Sidebar() {
                     </>
                 )}
             </div>
+            {creating && (
+                <CreateDialog
+                    kind={creating.kind}
+                    onConfirm={handleCreateConfirm}
+                    onCancel={() => setCreating(null)}
+                />
+            )}
         </aside>
     );
 }

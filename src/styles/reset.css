@@ -23,7 +23,7 @@ body {
   color: var(--color-black);
   background-color: var(--bg-white);
   line-height: var(--leading-normal);
-  overflow: hidden; /* Electron 窗口不需要滚动条 */
+  overflow: hidden; /* 桌面应用根窗口不使用页面级滚动条 */
   user-select: none; /* 默认禁止选中，可编辑区域单独开启 */
 }
 
