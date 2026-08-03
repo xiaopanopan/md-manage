@@ -289,9 +289,6 @@ export function Sidebar() {
 
     return (
         <aside className={styles.sidebar}>
-            {/* macOS Traffic Lights 空间 */}
-            <div className={styles.trafficArea} />
-
             {/* 工具栏 */}
             <div className={styles.toolbar}>
                 <span className={styles.toolbarTitle}>
