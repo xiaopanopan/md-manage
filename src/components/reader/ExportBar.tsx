@@ -15,7 +15,7 @@ export function ExportBar() {
     const { data, body } = parseFrontMatter(content);
     const html = await renderMarkdown(body, workspace ?? undefined, currentFile);
     const full = wrapHtmlForExport(html, data.title);
-    await window.electronAPI?.export.pdf(full);
+    await window.desktopAPI?.export.pdf(full);
   }, [content, currentFile, workspace]);
 
   const handleExportHtml = useCallback(async () => {
@@ -23,7 +23,7 @@ export function ExportBar() {
     const { data, body } = parseFrontMatter(content);
     const html = await renderMarkdown(body, workspace ?? undefined, currentFile);
     const full = wrapHtmlForExport(html, data.title);
-    await window.electronAPI?.export.html(full);
+    await window.desktopAPI?.export.html(full);
   }, [content, currentFile, workspace]);
 
   return (

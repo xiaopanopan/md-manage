@@ -62,7 +62,7 @@ export function MarkdownRenderer() {
       e.preventDefault();
       const href = (target as HTMLAnchorElement).href;
       if (href && href.startsWith('http')) {
-        window.open(href);
+        void window.desktopAPI.shell.openExternal(href);
       }
     }
   }, []);

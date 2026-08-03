@@ -120,8 +120,8 @@ export function Sidebar() {
 
     // 响应右键菜单动作
     useEffect(() => {
-        if (!window.electronAPI?.onMenuAction) return;
-        const unsub = window.electronAPI.onMenuAction(async (action: MenuAction) => {
+        if (!window.desktopAPI?.onMenuAction) return;
+        const unsub = window.desktopAPI.onMenuAction(async (action: MenuAction) => {
             const { type, payload } = action;
             const targetPath = payload.path ?? '';
             const isFolder = payload.isFolder === 'true';
@@ -137,7 +137,7 @@ export function Sidebar() {
                         if (opened && isSameOrDescendant(opened, targetPath)) {
                             await flushCurrentDocument();
                         }
-                        await window.electronAPI.file.delete(targetPath);
+                        await window.desktopAPI.file.delete(targetPath);
                         if (opened && isSameOrDescendant(opened, targetPath)) {
                             useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
                         }
@@ -156,7 +156,7 @@ export function Sidebar() {
                     const name = requestName('新建 Markdown 文件', 'untitled.md');
                     if (!name) break;
                     try {
-                        const newPath = await window.electronAPI.file.create(contextDir, name);
+                        const newPath = await window.desktopAPI.file.create(contextDir, name);
                         await refreshFiles();
                         await openDocument(newPath);
                     } catch (e) {
@@ -169,7 +169,7 @@ export function Sidebar() {
                     const name = requestName('新建文件夹', '新文件夹');
                     if (!name) break;
                     try {
-                        await window.electronAPI.file.createFolder(contextDir, name);
+                        await window.desktopAPI.file.createFolder(contextDir, name);
                         await refreshFiles();
                     } catch (e) {
                         console.error('[Sidebar] newFolder failed:', e);
@@ -183,9 +183,9 @@ export function Sidebar() {
     }, [workspace]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const refreshFiles = useCallback(async () => {
-        if (!workspace || !window.electronAPI) return;
+        if (!workspace || !window.desktopAPI) return;
         try {
-            const updated = await window.electronAPI.file.list(workspace);
+            const updated = await window.desktopAPI.file.list(workspace);
             setFiles(updated);
         } catch (e) {
             console.error('[Sidebar] refreshFiles failed:', e);
@@ -211,7 +211,7 @@ export function Sidebar() {
                 if (current && isSameOrDescendant(current, file.path)) {
                     await flushCurrentDocument();
                 }
-                const newPath = await window.electronAPI.file.rename(file.path, finalName);
+                const newPath = await window.desktopAPI.file.rename(file.path, finalName);
                 useAppStore.setState({
                     currentFile: current ? remapPath(current, file.path, newPath) : null,
                     recentFiles: state.recentFiles.map((p) => remapPath(p, file.path, newPath)),
@@ -240,7 +240,7 @@ export function Sidebar() {
                 if (current && isSameOrDescendant(current, srcPath)) {
                     await flushCurrentDocument();
                 }
-                const newPath = await window.electronAPI.file.move(srcPath, destDir);
+                const newPath = await window.desktopAPI.file.move(srcPath, destDir);
                 useAppStore.setState({
                     currentFile: current ? remapPath(current, srcPath, newPath) : null,
                     recentFiles: state.recentFiles.map((p) => remapPath(p, srcPath, newPath)),
@@ -262,22 +262,22 @@ export function Sidebar() {
             window.alert('当前文件保存失败，无法切换工作区。');
             return;
         }
-        const ws = await window.electronAPI.workspace.open();
+        const ws = await window.desktopAPI.workspace.open();
         if (ws) {
             setWorkspace(ws);
             useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
-            const updated = await window.electronAPI.file.list(ws);
+            const updated = await window.desktopAPI.file.list(ws);
             if (updated) setFiles(updated);
         }
     };
 
     const handleNewFile = async () => {
-        if (!workspace || !window.electronAPI) return;
+        if (!workspace || !window.desktopAPI) return;
         const targetDir = activeDir ?? workspace;
         const name = requestName('新建 Markdown 文件', 'untitled.md');
         if (!name) return;
         try {
-            const newPath = await window.electronAPI.file.create(targetDir, name);
+            const newPath = await window.desktopAPI.file.create(targetDir, name);
             await refreshFiles();
             await openDocument(newPath);
         } catch (err) {
@@ -287,12 +287,12 @@ export function Sidebar() {
     };
 
     const handleNewFolder = async () => {
-        if (!workspace || !window.electronAPI) return;
+        if (!workspace || !window.desktopAPI) return;
         const targetDir = activeDir ?? workspace;
         const name = requestName('新建文件夹', '新文件夹');
         if (!name) return;
         try {
-            await window.electronAPI.file.createFolder(targetDir, name);
+            await window.desktopAPI.file.createFolder(targetDir, name);
             await refreshFiles();
         } catch (err) {
             console.error('[Sidebar] create folder failed:', err);

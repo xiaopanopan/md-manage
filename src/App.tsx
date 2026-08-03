@@ -57,15 +57,15 @@ export default function App() {
   // 恢复上次工作区
   useEffect(() => {
     async function restoreWorkspace() {
-      if (!window.electronAPI) return;
+      if (!window.desktopAPI) return;
       try {
-        const savedPath = await window.electronAPI.workspace.get();
+        const savedPath = await window.desktopAPI.workspace.get();
         if (savedPath && savedPath !== workspace) {
           setWorkspace(savedPath);
         }
         const targetPath = savedPath ?? workspace;
         if (targetPath) {
-          const files = await window.electronAPI.file.list(targetPath);
+          const files = await window.desktopAPI.file.list(targetPath);
           setFiles(files);
         }
       } catch (err) {
@@ -76,14 +76,14 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 监听文件变更（主进程 chokidar 推送）
+  // 监听文件变更（Rust notify watcher 通过 Tauri event 推送）
   useEffect(() => {
-    if (!window.electronAPI) return;
-    const unsubscribe = window.electronAPI.onFileChanged(async () => {
+    if (!window.desktopAPI) return;
+    const unsubscribe = window.desktopAPI.onFileChanged(async () => {
       const target = workspace;
       if (!target) return;
       try {
-        const files = await window.electronAPI.file.list(target);
+        const files = await window.desktopAPI.file.list(target);
         setFiles(files);
       } catch (err) {
         console.error('[App] file refresh failed:', err);
@@ -133,7 +133,7 @@ export default function App() {
         e.preventDefault();
         try {
           await flushCurrentDocument();
-          await window.electronAPI?.file.delete(currentFile);
+          await window.desktopAPI?.file.delete(currentFile);
           useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
         } catch (err) {
           console.error('[App] delete failed:', err);
@@ -164,15 +164,15 @@ export default function App() {
 
   // 与主进程进行关闭握手，确保 debounce 中的内容先写入磁盘。
   useEffect(() => {
-    if (!window.electronAPI?.onBeforeClose) return;
-    return window.electronAPI.onBeforeClose(async () => {
+    if (!window.desktopAPI?.onBeforeClose) return;
+    return window.desktopAPI.onBeforeClose(async () => {
       try {
         await flushCurrentDocument();
-        await window.electronAPI.window.confirmClose();
+        await window.desktopAPI.window.confirmClose();
       } catch (err) {
         console.error('[App] save before close failed:', err);
         const discard = window.confirm('保存失败。是否放弃未保存的修改并关闭窗口？');
-        if (discard) await window.electronAPI.window.confirmClose();
+        if (discard) await window.desktopAPI.window.confirmClose();
       }
     });
   }, []);

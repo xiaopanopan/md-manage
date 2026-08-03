@@ -54,7 +54,7 @@ export function Folder({
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    window.electronAPI?.contextMenu.show('file', {
+    window.desktopAPI?.contextMenu.show('file', {
       path: folder.path,
       parentPath: folder.parentPath,
       isFolder: 'true',

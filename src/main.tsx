@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './platform/tauri';
 import './styles/reset.css';
 import './styles/variables.css';
 import './styles/theme-dark.css';
