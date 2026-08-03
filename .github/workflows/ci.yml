@@ -36,4 +36,4 @@ jobs:
         run: pnpm exec vitest run --reporter=verbose
 
       - name: Build renderer
-        run: pnpm run build:renderer
+        run: pnpm run build

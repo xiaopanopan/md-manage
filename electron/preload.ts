@@ -10,12 +10,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('file:write', filePath, content),
     delete: (filePath: string) =>
       ipcRenderer.invoke('file:delete', filePath),
-    rename: (oldPath: string, newPath: string) =>
-      ipcRenderer.invoke('file:rename', oldPath, newPath),
+    rename: (oldPath: string, newName: string) =>
+      ipcRenderer.invoke('file:rename', oldPath, newName),
+    move: (sourcePath: string, destDir: string) =>
+      ipcRenderer.invoke('file:move', sourcePath, destDir),
     list: (dir: string) =>
       ipcRenderer.invoke('file:list', dir),
     create: (dir: string, name: string) =>
       ipcRenderer.invoke('file:create', dir, name),
+    createFolder: (dir: string, name: string) =>
+      ipcRenderer.invoke('folder:create', dir, name),
   },
 
   // ── 工作区 ────────────────────────────────────────────────
@@ -69,6 +73,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     setFullscreen: (flag: boolean) => ipcRenderer.invoke('window:setFullscreen', flag),
     isFullscreen: () => ipcRenderer.invoke('window:isFullscreen'),
     isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+    confirmClose: () => ipcRenderer.invoke('window:confirmClose'),
   },
 
   // ── 主进程推送事件 ────────────────────────────────────────
@@ -85,5 +90,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       callback(action);
     ipcRenderer.on('menu:action', handler);
     return () => ipcRenderer.removeListener('menu:action', handler);
+  },
+
+  onBeforeClose: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on('app:before-close', handler);
+    return () => ipcRenderer.removeListener('app:before-close', handler);
   },
 });

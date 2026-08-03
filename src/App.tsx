@@ -6,7 +6,6 @@ import {
   useSettingsOpen,
   useViewMode,
   useCurrentFile,
-  useCurrentContent,
   useIsDirty,
 } from '@/hooks/useAppStore';
 import type { Theme } from '@/types/state';
@@ -15,6 +14,7 @@ import { SettingsPanel } from '@/components/settings/SettingsPanel';
 import { EditorArea } from '@/components/editor/EditorArea';
 import { MarkdownRenderer } from '@/components/reader/MarkdownRenderer';
 import { ModeSwitch } from '@/components/editor/ModeSwitch';
+import { flushCurrentDocument } from '@/services/documentSession';
 
 // 主题应用到 <html> 的 data-theme 属性（带平滑过渡）
 function applyTheme(theme: Theme, systemDark: boolean) {
@@ -41,10 +41,8 @@ export default function App() {
   const settingsOpen = useSettingsOpen();
   const viewMode = useViewMode();
   const currentFile = useCurrentFile();
-  const currentContent = useCurrentContent();
   const isDirty = useIsDirty();
   const { openSettings, switchMode } = useUIActions();
-  const markSaved = useAppStore((s) => s.markSaved);
 
   // 监听系统深色模式
   useEffect(() => {
@@ -112,10 +110,11 @@ export default function App() {
         if (!currentFile) return;
         if (viewMode === 'edit' && isDirty) {
           try {
-            await window.electronAPI?.file.write(currentFile, currentContent);
-            markSaved();
+            await flushCurrentDocument();
           } catch (err) {
             console.error('[App] save before mode switch failed:', err);
+            window.alert('保存失败，无法切换到阅读模式。');
+            return;
           }
         }
         switchMode(viewMode === 'edit' ? 'read' : 'edit');
@@ -133,10 +132,12 @@ export default function App() {
         if (!currentFile) return;
         e.preventDefault();
         try {
+          await flushCurrentDocument();
           await window.electronAPI?.file.delete(currentFile);
           useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
         } catch (err) {
           console.error('[App] delete failed:', err);
+          window.alert('无法移到废纸篓，文件没有被删除。');
         }
         return;
       }
@@ -159,7 +160,22 @@ export default function App() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [openSettings, switchMode, viewMode, currentFile, currentContent, isDirty, markSaved]);
+  }, [openSettings, switchMode, viewMode, currentFile, isDirty]);
+
+  // 与主进程进行关闭握手，确保 debounce 中的内容先写入磁盘。
+  useEffect(() => {
+    if (!window.electronAPI?.onBeforeClose) return;
+    return window.electronAPI.onBeforeClose(async () => {
+      try {
+        await flushCurrentDocument();
+        await window.electronAPI.window.confirmClose();
+      } catch (err) {
+        console.error('[App] save before close failed:', err);
+        const discard = window.confirm('保存失败。是否放弃未保存的修改并关闭窗口？');
+        if (discard) await window.electronAPI.window.confirmClose();
+      }
+    });
+  }, []);
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>

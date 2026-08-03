@@ -10,8 +10,10 @@ import { getWindowState, saveWindowState } from './windowState';
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
 let mainWindow: BrowserWindow | null = null;
+let closeApproved = false;
 
 function createWindow() {
+  closeApproved = false;
   const state = getWindowState();
 
   mainWindow = new BrowserWindow({
@@ -47,9 +49,17 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
 
-  // 关闭前保存窗口状态
-  mainWindow.on('close', () => {
-    if (mainWindow) saveWindowState(mainWindow);
+  // 关闭前让渲染进程完成最后一次保存。
+  mainWindow.on('close', (event) => {
+    if (!mainWindow) return;
+    saveWindowState(mainWindow);
+    if (!closeApproved) {
+      event.preventDefault();
+      mainWindow.webContents.send('app:before-close');
+    }
+  });
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
 
   // 外部链接在系统浏览器打开
@@ -63,7 +73,10 @@ app.whenReady().then(() => {
   registerConfigHandlers();
   registerFileSystemHandlers();
   registerContextMenuHandlers();
-  registerWindowHandlers();
+  registerWindowHandlers(() => {
+    closeApproved = true;
+    mainWindow?.close();
+  });
   registerImportHandlers();
 
   createWindow();
@@ -78,6 +91,7 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
+
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

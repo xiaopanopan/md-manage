@@ -15,9 +15,13 @@ const sanitizeSchema = {
   ...defaultSchema,
   attributes: {
     ...defaultSchema.attributes,
-    img: [['src', /^(https?:|file:)/, /^\//], 'alt', 'title'],
+    img: [...(defaultSchema.attributes?.img ?? []), 'src', 'alt', 'title'],
     code: [['className']],
     span: [['className']],
+  },
+  protocols: {
+    ...defaultSchema.protocols,
+    src: [...(defaultSchema.protocols?.src ?? []), 'file'],
   },
 };
 
@@ -26,20 +30,65 @@ function encodeFilePath(p: string): string {
   return p
     .replace(/\\/g, '/') // Windows 反斜杠转正斜杠
     .split('/')
-    .map((seg) => encodeURIComponent(seg))
+    .map((seg) => (/^[a-zA-Z]:$/.test(seg) ? seg : encodeURIComponent(seg)))
     .join('/');
 }
 
-/** 自定义 rehype 插件：将相对图片路径转为 file:// 协议（URL 编码以支持空格/中文/特殊字符） */
-function rehypeFixImagePaths(workspace: string) {
+function normalizePath(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, '/');
+  const prefix = normalized.startsWith('/') ? '/' : '';
+  const parts: string[] = [];
+
+  for (const part of normalized.split('/')) {
+    if (!part || part === '.') continue;
+    if (part === '..') {
+      parts.pop();
+    } else {
+      parts.push(part);
+    }
+  }
+  return `${prefix}${parts.join('/')}`;
+}
+
+function dirname(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, '/');
+  const separator = normalized.lastIndexOf('/');
+  return separator < 0 ? '' : normalized.slice(0, separator);
+}
+
+function isInsideWorkspace(workspace: string, filePath: string): boolean {
+  const root = normalizePath(workspace).replace(/\/$/, '');
+  const target = normalizePath(filePath);
+  const windowsPath = /^[a-zA-Z]:\//.test(root);
+  const comparableRoot = windowsPath ? root.toLowerCase() : root;
+  const comparableTarget = windowsPath ? target.toLowerCase() : target;
+  return comparableTarget === comparableRoot || comparableTarget.startsWith(`${comparableRoot}/`);
+}
+
+/**
+ * 将相对图片路径转为 file:// URL：
+ * - `.md-manage/...` 相对工作区根目录；
+ * - 普通相对路径相对当前 Markdown 文件所在目录。
+ */
+function rehypeFixImagePaths(workspace: string, currentFile?: string) {
   return (tree: AnyNode) => {
     visit(tree, 'element', (node: AnyNode) => {
       if (node.tagName === 'img' && node.properties?.src) {
         const src = node.properties.src as string;
         if (!src.startsWith('http') && !src.startsWith('file://') && !src.startsWith('data:')) {
-          const encodedWs = encodeFilePath(workspace);
-          const encodedSrc = encodeFilePath(src);
-          node.properties.src = `file://${encodedWs}/${encodedSrc}`;
+          const normalizedSrc = src.replace(/\\/g, '/').replace(/^\.\//, '');
+          const baseDir = normalizedSrc.startsWith('.md-manage/')
+            ? workspace
+            : currentFile
+              ? dirname(currentFile)
+              : workspace;
+          const absolutePath = normalizePath(`${baseDir}/${normalizedSrc}`);
+
+          // Markdown 内容不能通过 ../ 读取工作区外的本地文件。
+          if (isInsideWorkspace(workspace, absolutePath)) {
+            const encodedPath = encodeFilePath(absolutePath);
+            node.properties.src = `file://${encodedPath}`;
+          }
         }
       }
     });
@@ -49,7 +98,8 @@ function rehypeFixImagePaths(workspace: string) {
 /** 渲染 Markdown 为 HTML */
 export async function renderMarkdown(
   content: string,
-  workspace?: string
+  workspace?: string,
+  currentFile?: string
 ): Promise<string> {
   let builder = unified()
     .use(remarkParse)
@@ -57,7 +107,7 @@ export async function renderMarkdown(
     .use(remarkRehype, { allowDangerousHtml: true });
 
   if (workspace) {
-    builder = builder.use(rehypeFixImagePaths, workspace);
+    builder = builder.use(rehypeFixImagePaths, workspace, currentFile);
   }
 
   const result = await builder

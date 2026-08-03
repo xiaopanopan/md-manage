@@ -1,14 +1,13 @@
 import { useViewMode, useUIActions } from '@/hooks/useAppStore';
 import { useAppStore } from '@/stores/appStore';
+import { flushCurrentDocument } from '@/services/documentSession';
 import styles from './ModeSwitch.module.css';
 
 export function ModeSwitch() {
   const viewMode = useViewMode();
   const { switchMode } = useUIActions();
   const currentFile = useAppStore((s) => s.currentFile);
-  const currentContent = useAppStore((s) => s.currentContent);
   const isDirty = useAppStore((s) => s.isDirty);
-  const markSaved = useAppStore((s) => s.markSaved);
 
   const disabled = !currentFile;
 
@@ -16,10 +15,11 @@ export function ModeSwitch() {
     if (disabled || mode === viewMode) return;
     if (viewMode === 'edit' && isDirty && currentFile) {
       try {
-        await window.electronAPI?.file.write(currentFile, currentContent);
-        markSaved();
+        await flushCurrentDocument();
       } catch (err) {
         console.error('[ModeSwitch] save failed:', err);
+        window.alert('保存失败，无法切换到阅读模式。');
+        return;
       }
     }
     switchMode(mode);

@@ -5,7 +5,32 @@ import { useFiles, useWorkspace, useCurrentFile } from '@/hooks/useAppStore';
 import { useAppStore } from '@/stores/appStore';
 import { Folder } from './Folder';
 import { FileItem } from './FileItem';
+import { flushCurrentDocument, openDocument } from '@/services/documentSession';
 import styles from './Sidebar.module.css';
+
+function isSameOrDescendant(candidate: string, parent: string): boolean {
+    if (candidate === parent) return true;
+    return candidate.startsWith(`${parent}/`) || candidate.startsWith(`${parent}\\`);
+}
+
+function remapPath(candidate: string, oldPath: string, newPath: string): string {
+    if (!isSameOrDescendant(candidate, oldPath)) return candidate;
+    return `${newPath}${candidate.slice(oldPath.length)}`;
+}
+
+function findFile(nodes: FileNode[], targetPath: string): FileNode | undefined {
+    for (const node of nodes) {
+        if (node.path === targetPath) return node;
+        const found = node.children ? findFile(node.children, targetPath) : undefined;
+        if (found) return found;
+    }
+    return undefined;
+}
+
+function requestName(message: string, initialValue: string): string | null {
+    const value = window.prompt(message, initialValue)?.trim();
+    return value || null;
+}
 
 // ── 图标 ─────────────────────────────────────────────────────
 const NewFileIcon = () => (
@@ -73,7 +98,7 @@ export function Sidebar() {
     const currentFile = useCurrentFile();
     // 活动目录：当前打开文件所在目录；否则工作区根目录
     const activeDir = currentFile
-        ? currentFile.slice(0, currentFile.lastIndexOf('/'))
+        ? findFile(files, currentFile)?.parentPath ?? workspace
         : workspace;
 
     // 拖拽全局结束 → 清除根目录高亮
@@ -103,18 +128,23 @@ export function Sidebar() {
             // 目标所在的目录（右键文件 → 文件父目录，右键文件夹 → 该文件夹）
             const contextDir = isFolder
                 ? targetPath
-                : targetPath.slice(0, targetPath.lastIndexOf('/'));
+                : payload.parentPath;
 
             switch (type) {
                 case 'delete': {
                     try {
-                        if (useAppStore.getState().currentFile === targetPath) {
-                            useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
+                        const opened = useAppStore.getState().currentFile;
+                        if (opened && isSameOrDescendant(opened, targetPath)) {
+                            await flushCurrentDocument();
                         }
                         await window.electronAPI.file.delete(targetPath);
+                        if (opened && isSameOrDescendant(opened, targetPath)) {
+                            useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
+                        }
                         await refreshFiles();
                     } catch (e) {
                         console.error('[Sidebar] delete failed:', e);
+                        window.alert('无法移到废纸篓，文件没有被删除。');
                     }
                     break;
                 }
@@ -123,25 +153,27 @@ export function Sidebar() {
                     break;
                 }
                 case 'newFile': {
-                    const name = `untitled-${Date.now()}.md`;
+                    const name = requestName('新建 Markdown 文件', 'untitled.md');
+                    if (!name) break;
                     try {
                         const newPath = await window.electronAPI.file.create(contextDir, name);
                         await refreshFiles();
-                        setRenamingPath(newPath);
+                        await openDocument(newPath);
                     } catch (e) {
                         console.error('[Sidebar] newFile failed:', e);
+                        window.alert('创建失败：名称可能已存在或不可用。');
                     }
                     break;
                 }
                 case 'newFolder': {
-                    // 文件右键：在文件所在目录创建；文件夹右键：在该文件夹内创建子文件夹
-                    const name = `新文件夹-${Date.now()}`;
-                    const dirPath = `${contextDir}/${name}`;
+                    const name = requestName('新建文件夹', '新文件夹');
+                    if (!name) break;
                     try {
-                        await window.electronAPI.file.write(`${dirPath}/.gitkeep`, '');
+                        await window.electronAPI.file.createFolder(contextDir, name);
                         await refreshFiles();
                     } catch (e) {
                         console.error('[Sidebar] newFolder failed:', e);
+                        window.alert('创建失败：名称可能已存在或不可用。');
                     }
                     break;
                 }
@@ -166,26 +198,28 @@ export function Sidebar() {
             const trimmed = newName.trim();
             if (!trimmed || trimmed === file.name) return;
 
-            const dir = file.path.slice(0, file.path.length - file.name.length - 1);
             // 文件夹不追加扩展名；文件自动补 .md
             const finalName =
                 file.type === 'folder'
                     ? trimmed
-                    : trimmed.endsWith('.md')
+                    : /\.(md|markdown)$/i.test(trimmed)
                         ? trimmed
                         : `${trimmed}.md`;
-            const newPath = `${dir}/${finalName}`;
-
             try {
-                await window.electronAPI?.file.rename(file.path, newPath);
-                // 若正在打开被重命名的文件，同步更新 currentFile
-                const current = useAppStore.getState().currentFile;
-                if (current === file.path) {
-                    useAppStore.setState({ currentFile: newPath });
+                const state = useAppStore.getState();
+                const current = state.currentFile;
+                if (current && isSameOrDescendant(current, file.path)) {
+                    await flushCurrentDocument();
                 }
+                const newPath = await window.electronAPI.file.rename(file.path, finalName);
+                useAppStore.setState({
+                    currentFile: current ? remapPath(current, file.path, newPath) : null,
+                    recentFiles: state.recentFiles.map((p) => remapPath(p, file.path, newPath)),
+                });
                 await refreshFiles();
             } catch (e) {
                 console.error('[Sidebar] rename failed:', e);
+                window.alert('重命名失败：目标名称可能已存在或不可用。');
             }
         },
         [refreshFiles]
@@ -197,29 +231,42 @@ export function Sidebar() {
         async (srcPath: string, destDir: string) => {
             // 验证：不能拖到自身（文件夹）
             if (srcPath === destDir) return;
-            // 验证：不能移动到自身所在目录
-            const srcDir = srcPath.slice(0, srcPath.lastIndexOf('/'));
-            if (srcDir === destDir) return;
             // 验证：不能移动到自己的子目录（避免循环）
-            if (destDir.startsWith(srcPath + '/')) return;
+            if (isSameOrDescendant(destDir, srcPath)) return;
 
-            const fileName = srcPath.split('/').pop() ?? '';
-            const newPath = `${destDir}/${fileName}`;
             try {
-                await window.electronAPI?.file.rename(srcPath, newPath);
+                const state = useAppStore.getState();
+                const current = state.currentFile;
+                if (current && isSameOrDescendant(current, srcPath)) {
+                    await flushCurrentDocument();
+                }
+                const newPath = await window.electronAPI.file.move(srcPath, destDir);
+                useAppStore.setState({
+                    currentFile: current ? remapPath(current, srcPath, newPath) : null,
+                    recentFiles: state.recentFiles.map((p) => remapPath(p, srcPath, newPath)),
+                });
                 await refreshFiles();
             } catch (err) {
                 console.error('[Sidebar] move failed:', err);
+                window.alert('移动失败：目标位置可能已有同名项目。');
             }
         },
         [refreshFiles]
     );
 
     const handleOpenWorkspace = async () => {
-        const ws = await window.electronAPI?.workspace.open();
+        try {
+            await flushCurrentDocument();
+        } catch (err) {
+            console.error('[Sidebar] save before workspace switch failed:', err);
+            window.alert('当前文件保存失败，无法切换工作区。');
+            return;
+        }
+        const ws = await window.electronAPI.workspace.open();
         if (ws) {
             setWorkspace(ws);
-            const updated = await window.electronAPI?.file.list(ws);
+            useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
+            const updated = await window.electronAPI.file.list(ws);
             if (updated) setFiles(updated);
         }
     };
@@ -227,18 +274,30 @@ export function Sidebar() {
     const handleNewFile = async () => {
         if (!workspace || !window.electronAPI) return;
         const targetDir = activeDir ?? workspace;
-        const newPath = await window.electronAPI.file.create(targetDir, `untitled-${Date.now()}`);
-        await refreshFiles();
-        setRenamingPath(newPath);
+        const name = requestName('新建 Markdown 文件', 'untitled.md');
+        if (!name) return;
+        try {
+            const newPath = await window.electronAPI.file.create(targetDir, name);
+            await refreshFiles();
+            await openDocument(newPath);
+        } catch (err) {
+            console.error('[Sidebar] create file failed:', err);
+            window.alert('创建失败：名称可能已存在或不可用。');
+        }
     };
 
     const handleNewFolder = async () => {
         if (!workspace || !window.electronAPI) return;
         const targetDir = activeDir ?? workspace;
-        const name = `新文件夹-${Date.now()}`;
-        const dirPath = `${targetDir}/${name}`;
-        await window.electronAPI.file.write(`${dirPath}/.gitkeep`, '');
-        await refreshFiles();
+        const name = requestName('新建文件夹', '新文件夹');
+        if (!name) return;
+        try {
+            await window.electronAPI.file.createFolder(targetDir, name);
+            await refreshFiles();
+        } catch (err) {
+            console.error('[Sidebar] create folder failed:', err);
+            window.alert('创建失败：名称可能已存在或不可用。');
+        }
     };
 
     const handleThemeToggle = () => {

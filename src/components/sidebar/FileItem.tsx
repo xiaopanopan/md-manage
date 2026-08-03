@@ -1,7 +1,7 @@
 import type { FileNode } from '@/types/file';
 import { useCurrentFile } from '@/hooks/useAppStore';
-import { useAppStore } from '@/stores/appStore';
 import { RenameDialog } from '@/components/dialogs/RenameDialog';
+import { openDocument } from '@/services/documentSession';
 import styles from './FileItem.module.css';
 
 // SVG icons (inline, no external dependency)
@@ -28,8 +28,6 @@ export function FileItem({
   onRenameCancel,
 }: Props) {
   const currentFile = useCurrentFile();
-  const setCurrentFile = useAppStore((s) => s.setCurrentFile);
-  const addRecentFile = useAppStore((s) => s.addRecentFile);
 
   const isActive = currentFile === file.path;
   const isRenaming = renamingPath === file.path;
@@ -37,11 +35,10 @@ export function FileItem({
   const handleClick = async () => {
     if (isRenaming) return;
     try {
-      const content = await window.electronAPI?.file.read(file.path) ?? '';
-      setCurrentFile(file.path, content);
-      addRecentFile(file.path);
+      await openDocument(file.path);
     } catch (err) {
       console.error('[FileItem] read failed:', err);
+      window.alert('无法打开文件。当前文件的修改已保留，请检查文件权限后重试。');
     }
   };
 
@@ -50,6 +47,7 @@ export function FileItem({
     e.stopPropagation();
     window.electronAPI?.contextMenu.show('file', {
       path: file.path,
+      parentPath: file.parentPath,
       isFolder: 'false',
     });
   };
@@ -59,7 +57,7 @@ export function FileItem({
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const baseName = file.name.replace(/\.md$/i, '');
+  const baseName = file.name.replace(/\.(md|markdown)$/i, '');
 
   return (
     <div
@@ -74,7 +72,7 @@ export function FileItem({
       {isRenaming ? (
         <div className={styles.renameWrap}>
           <RenameDialog
-            initialName={file.name}
+            initialName={baseName}
             onConfirm={(n) => onRenameConfirm(file, n)}
             onCancel={onRenameCancel}
           />

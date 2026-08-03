@@ -1,5 +1,7 @@
 # 功能 2：Markdown 编辑器（Editor）
 
+> 文档状态：历史设计说明。TitleInput、TagEditor 和版本历史等描述并非当前实现。
+
 ## 1. 功能概述
 
 基于 CodeMirror 6 的纯代码编辑体验，无工具栏，支持 Markdown 语法高亮、Front Matter 元数据编辑、图片粘贴/拖拽、自动保存。

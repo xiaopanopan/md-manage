@@ -1,6 +1,6 @@
 import { ipcMain, BrowserWindow } from 'electron';
 
-export function registerWindowHandlers(): void {
+export function registerWindowHandlers(onConfirmClose: () => void): void {
   // 最小化窗口
   ipcMain.handle('window:minimize', () => {
     BrowserWindow.getFocusedWindow()?.minimize();
@@ -35,5 +35,9 @@ export function registerWindowHandlers(): void {
   // 查询最大化状态
   ipcMain.handle('window:isMaximized', () => {
     return BrowserWindow.getFocusedWindow()?.isMaximized() ?? false;
+  });
+
+  ipcMain.handle('window:confirmClose', () => {
+    onConfirmClose();
   });
 }

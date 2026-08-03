@@ -1,16 +1,44 @@
 import { ipcMain, dialog, BrowserWindow, shell } from 'electron';
 import fs from 'fs/promises';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import chokidar, { FSWatcher } from 'chokidar';
 import { getConfig, setConfig } from './config';
+import { assertWorkspacePath } from '../services/workspaceGuard';
 
 export interface FileNode {
   name: string;
   path: string;
+  parentPath: string;
   type: 'file' | 'folder';
   children?: FileNode[];
   modifiedAt: string;
   size?: number;
+}
+
+const MARKDOWN_EXTENSION = /\.(md|markdown)$/i;
+const WINDOWS_RESERVED_NAME = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
+
+function assertValidName(name: string): void {
+  if (
+    !name ||
+    name === '.' ||
+    name === '..' ||
+    /[\\/\0]/.test(name) ||
+    /[. ]$/.test(name) ||
+    WINDOWS_RESERVED_NAME.test(name)
+  ) {
+    throw new Error('INVALID_NAME');
+  }
+}
+
+async function assertTargetAvailable(targetPath: string): Promise<void> {
+  try {
+    await fs.access(targetPath);
+    throw new Error(`ALREADY_EXISTS: ${targetPath}`);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+  }
 }
 
 // ── 文件监听器 ──────────────────────────────────────────────
@@ -31,7 +59,8 @@ export function startWatcher(workspacePath: string): void {
 
   const notify = (eventType: string, filePath: string) => {
     // 仅关注 .md 文件
-    if (!filePath.endsWith('.md')) return;
+    const isDirectoryEvent = eventType === 'addDir' || eventType === 'unlinkDir';
+    if (!isDirectoryEvent && !MARKDOWN_EXTENSION.test(filePath)) return;
     const windows = BrowserWindow.getAllWindows();
     for (const win of windows) {
       win.webContents.send('file:changed', { type: eventType, path: filePath });
@@ -75,14 +104,16 @@ async function listDir(dir: string): Promise<FileNode[]> {
       nodes.push({
         name: entry.name,
         path: fullPath,
+        parentPath: dir,
         type: 'folder',
         children,
         modifiedAt: stat.mtime.toISOString(),
       });
-    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+    } else if (entry.isFile() && MARKDOWN_EXTENSION.test(entry.name)) {
       nodes.push({
         name: entry.name,
         path: fullPath,
+        parentPath: dir,
         type: 'file',
         modifiedAt: stat.mtime.toISOString(),
         size: stat.size,
@@ -99,39 +130,64 @@ async function listDir(dir: string): Promise<FileNode[]> {
 export function registerFileSystemHandlers(): void {
   // 文件 CRUD
   ipcMain.handle('file:read', async (_event, filePath: string) => {
-    return await fs.readFile(filePath, 'utf-8');
+    return await fs.readFile(await assertWorkspacePath(filePath), 'utf-8');
   });
 
   ipcMain.handle('file:write', async (_event, filePath: string, content: string) => {
+    filePath = await assertWorkspacePath(filePath);
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, content, 'utf-8');
   });
 
   ipcMain.handle('file:delete', async (_event, filePath: string) => {
-    try {
-      // 先尝试移到废纸篓（可恢复）
-      await shell.trashItem(filePath);
-    } catch (err) {
-      console.warn('[file:delete] trashItem failed, falling back to rm:', err);
-      // 回退：递归强制删除（处理 shell.trashItem 无法处理的文件夹）
-      await fs.rm(filePath, { recursive: true, force: true });
-    }
+    // 删除必须可恢复；废纸篓失败时将错误交给 UI，不再静默永久删除。
+    await shell.trashItem(await assertWorkspacePath(filePath));
   });
 
-  ipcMain.handle('file:rename', async (_event, oldPath: string, newPath: string) => {
+  ipcMain.handle('file:rename', async (_event, oldPath: string, newName: string) => {
+    oldPath = await assertWorkspacePath(oldPath);
+    assertValidName(newName);
+    const newPath = path.join(path.dirname(oldPath), newName);
+    await assertWorkspacePath(newPath);
+    await assertTargetAvailable(newPath);
     await fs.mkdir(path.dirname(newPath), { recursive: true });
     await fs.rename(oldPath, newPath);
+    return newPath;
+  });
+
+  ipcMain.handle('file:move', async (_event, sourcePath: string, destDir: string) => {
+    sourcePath = await assertWorkspacePath(sourcePath);
+    destDir = await assertWorkspacePath(destDir);
+    const newPath = path.join(destDir, path.basename(sourcePath));
+    if (newPath === sourcePath) return sourcePath;
+    const relativeDest = path.relative(sourcePath, destDir);
+    if (relativeDest && !relativeDest.startsWith('..') && !path.isAbsolute(relativeDest)) {
+      throw new Error('INVALID_MOVE');
+    }
+    await assertTargetAvailable(newPath);
+    await fs.rename(sourcePath, newPath);
+    return newPath;
   });
 
   ipcMain.handle('file:list', async (_event, dir: string) => {
-    return await listDir(dir);
+    return await listDir(await assertWorkspacePath(dir));
   });
 
   ipcMain.handle('file:create', async (_event, dir: string, name: string) => {
-    const filePath = path.join(dir, name.endsWith('.md') ? name : `${name}.md`);
+    dir = await assertWorkspacePath(dir);
+    assertValidName(name);
+    const filePath = path.join(dir, MARKDOWN_EXTENSION.test(name) ? name : `${name}.md`);
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(filePath, '', 'utf-8');
+    await fs.writeFile(filePath, '', { encoding: 'utf-8', flag: 'wx' });
     return filePath;
+  });
+
+  ipcMain.handle('folder:create', async (_event, dir: string, name: string) => {
+    dir = await assertWorkspacePath(dir);
+    assertValidName(name);
+    const folderPath = path.join(dir, name);
+    await fs.mkdir(folderPath);
+    return folderPath;
   });
 
   // 工作区
@@ -167,7 +223,11 @@ export function registerFileSystemHandlers(): void {
     const imagesDir = path.join(workspace, '.md-manage', 'images');
     await fs.mkdir(imagesDir, { recursive: true });
 
-    const filename = `${Date.now()}.${ext.replace(/^\./, '')}`;
+    const normalizedExt = ext.replace(/^\./, '').toLowerCase();
+    if (!/^(png|jpe?g|gif|webp|svg|bmp|apng)$/.test(normalizedExt)) {
+      throw new Error('INVALID_IMAGE_EXTENSION');
+    }
+    const filename = `${Date.now()}-${randomUUID()}.${normalizedExt}`;
     const absPath = path.join(imagesDir, filename);
     await fs.writeFile(absPath, Buffer.from(buffer));
 
@@ -178,7 +238,7 @@ export function registerFileSystemHandlers(): void {
   ipcMain.handle('image:getAbsPath', async (_event, relativePath: string) => {
     const workspace = getConfig('workspace') as string | null;
     if (!workspace) throw new Error('No workspace configured');
-    return path.join(workspace, relativePath);
+    return await assertWorkspacePath(path.join(workspace, relativePath));
   });
 
   // 导出 PDF

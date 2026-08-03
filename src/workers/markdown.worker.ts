@@ -15,9 +15,13 @@ const sanitizeSchema = {
   ...defaultSchema,
   attributes: {
     ...defaultSchema.attributes,
-    img: [['src', /^(https?:|file:)/, /^\//], 'alt', 'title'],
+    img: [...(defaultSchema.attributes?.img ?? []), 'src', 'alt', 'title'],
     code: [['className']],
     span: [['className']],
+  },
+  protocols: {
+    ...defaultSchema.protocols,
+    src: [...(defaultSchema.protocols?.src ?? []), 'file'],
   },
 };
 

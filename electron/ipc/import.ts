@@ -2,6 +2,9 @@ import { ipcMain, dialog, BrowserWindow } from 'electron';
 import fs from 'fs/promises';
 import path from 'path';
 import { getConfig } from './config';
+import { assertWorkspacePath } from '../services/workspaceGuard';
+
+const MARKDOWN_EXTENSION = /\.(md|markdown)$/i;
 
 // 解决同名冲突：若目标文件已存在，追加 _1、_2 …
 async function resolveConflict(destPath: string): Promise<string> {
@@ -42,7 +45,7 @@ async function collectMarkdownFiles(
     if (entry.isDirectory()) {
       const sub = await collectMarkdownFiles(full, base);
       result.push(...sub);
-    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+    } else if (entry.isFile() && MARKDOWN_EXTENSION.test(entry.name)) {
       result.push([full, path.relative(base, full)]);
     }
   }
@@ -56,7 +59,7 @@ export function registerImportHandlers(): void {
     const win = BrowserWindow.getFocusedWindow();
     if (!workspace || !win) throw new Error('No workspace configured');
 
-    const target = destDir ?? workspace;
+    const target = await assertWorkspacePath(destDir ?? workspace);
 
     const { filePaths, canceled } = await dialog.showOpenDialog(win, {
       title: '导入 Markdown 文件',
@@ -81,7 +84,7 @@ export function registerImportHandlers(): void {
     const win = BrowserWindow.getFocusedWindow();
     if (!workspace || !win) throw new Error('No workspace configured');
 
-    const target = destDir ?? workspace;
+    const target = await assertWorkspacePath(destDir ?? workspace);
 
     const { filePaths, canceled } = await dialog.showOpenDialog(win, {
       title: '导入文件夹',
@@ -109,6 +112,7 @@ export function registerImportHandlers(): void {
   ipcMain.handle(
     'import:drop',
     async (_event, srcPaths: string[], destDir: string) => {
+      destDir = await assertWorkspacePath(destDir);
       const imported: string[] = [];
 
       for (const srcPath of srcPaths) {
@@ -128,7 +132,7 @@ export function registerImportHandlers(): void {
             await fs.copyFile(src, dest);
             imported.push(dest);
           }
-        } else if (srcPath.endsWith('.md') || srcPath.endsWith('.markdown')) {
+        } else if (MARKDOWN_EXTENSION.test(srcPath)) {
           const dest = await resolveConflict(
             path.join(destDir, path.basename(srcPath))
           );

@@ -56,6 +56,7 @@ export function Folder({
     e.stopPropagation();
     window.electronAPI?.contextMenu.show('file', {
       path: folder.path,
+      parentPath: folder.parentPath,
       isFolder: 'true',
     });
   };

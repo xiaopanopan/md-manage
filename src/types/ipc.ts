@@ -8,9 +8,11 @@ export interface FileAPI {
   read(path: string): Promise<string>;
   write(path: string, content: string): Promise<void>;
   delete(path: string): Promise<void>;
-  rename(oldPath: string, newPath: string): Promise<void>;
+  rename(oldPath: string, newName: string): Promise<string>;
+  move(sourcePath: string, destDir: string): Promise<string>;
   list(dir: string): Promise<FileNode[]>;
   create(dir: string, name: string): Promise<string>;
+  createFolder(dir: string, name: string): Promise<string>;
 }
 
 export interface WorkspaceAPI {
@@ -56,6 +58,7 @@ export interface WindowAPI {
   setFullscreen(flag: boolean): Promise<void>;
   isFullscreen(): Promise<boolean>;
   isMaximized(): Promise<boolean>;
+  confirmClose(): Promise<void>;
 }
 
 export interface ElectronAPI {
@@ -69,6 +72,7 @@ export interface ElectronAPI {
   window: WindowAPI;
   onFileChanged(callback: (info: unknown) => void): () => void;
   onMenuAction(callback: (action: MenuAction) => void): () => void;
+  onBeforeClose(callback: () => void): () => void;
 }
 
 // 全局类型扩展

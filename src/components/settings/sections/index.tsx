@@ -2,6 +2,7 @@ import styles from '../SettingsPanel.module.css';
 import { useWorkspace } from '@/hooks/useAppStore';
 import { useAppStore } from '@/stores/appStore';
 import type { Theme } from '@/types/state';
+import { flushCurrentDocument } from '@/services/documentSession';
 
 export function GeneralSettings() {
   const workspace = useWorkspace();
@@ -9,9 +10,17 @@ export function GeneralSettings() {
   const setFiles = useAppStore((s) => s.setFiles);
 
   const handleChangeWorkspace = async () => {
+    try {
+      await flushCurrentDocument();
+    } catch (err) {
+      console.error('[Settings] save before workspace switch failed:', err);
+      window.alert('当前文件保存失败，无法切换工作区。');
+      return;
+    }
     const ws = await window.electronAPI?.workspace.open();
     if (ws) {
       setWorkspace(ws);
+      useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
       const files = await window.electronAPI?.file.list(ws);
       if (files) setFiles(files);
     }

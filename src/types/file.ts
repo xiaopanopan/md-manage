@@ -5,6 +5,7 @@
 export interface FileNode {
   name: string;
   path: string;
+  parentPath: string;
   type: 'file' | 'folder';
   children?: FileNode[];
   metadata?: FileMetadata;

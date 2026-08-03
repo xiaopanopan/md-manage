@@ -9,6 +9,7 @@ import {
 } from '@/hooks/useAppStore';
 import { EditorCore } from './EditorCore';
 import { FileInfoBar } from './FileInfoBar';
+import { saveCurrentDocument } from '@/services/documentSession';
 import styles from './EditorArea.module.css';
 
 export function EditorArea() {
@@ -18,7 +19,6 @@ export function EditorArea() {
   const theme = useTheme();
   const workspace = useWorkspace();
   const setContent = useAppStore((s) => s.setContent);
-  const markSaved = useAppStore((s) => s.markSaved);
 
   const isDark = useMemo(() => {
     if (theme === 'dark') return true;
@@ -39,14 +39,13 @@ export function EditorArea() {
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       try {
-        await window.electronAPI?.file.write(currentFile, currentContent);
-        markSaved();
+        await saveCurrentDocument();
       } catch (err) {
         console.error('[EditorArea] auto-save failed:', err);
       }
     }, 2000);
     return () => clearTimeout(saveTimerRef.current);
-  }, [isDirty, currentContent, currentFile, markSaved]);
+  }, [isDirty, currentContent, currentFile]);
 
   // ── Cmd+S 手动保存 ────────────────────────────────────────
   useEffect(() => {
@@ -57,8 +56,7 @@ export function EditorArea() {
         clearTimeout(saveTimerRef.current);
         (async () => {
           try {
-            await window.electronAPI?.file.write(currentFile, currentContent);
-            markSaved();
+            await saveCurrentDocument();
           } catch (err) {
             console.error('[EditorArea] manual save failed:', err);
           }
@@ -67,7 +65,7 @@ export function EditorArea() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [currentFile, isDirty, currentContent, markSaved]);
+  }, [currentFile, isDirty, currentContent]);
 
   if (!currentFile) {
     return (

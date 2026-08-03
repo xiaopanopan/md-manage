@@ -1,208 +1,193 @@
 # 简记 · md-manage
 
-> 一款极简的本地 Markdown 文件管理与写作桌面应用。专注写作本身，数据本地化，隐私优先。
+一款本地优先的 Markdown 文件管理与写作桌面应用。工作区就是普通文件夹，不依赖账号、云服务或数据库。
 
-![electron](https://img.shields.io/badge/Electron-28-47848F)
-![react](https://img.shields.io/badge/React-18-61DAFB)
-![vite](https://img.shields.io/badge/Vite-5-646CFF)
-![typescript](https://img.shields.io/badge/TypeScript-5-3178C6)
+![Electron](https://img.shields.io/badge/Electron-28-47848F)
+![React](https://img.shields.io/badge/React-18-61DAFB)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
 
----
+> 当前版本：`0.1.0`，处于功能完善与可靠性优化阶段。
 
-## 功能亮点
+## 当前能力
 
-### 📁 左侧文件管理
+### 文件管理
 
-- 工作区目录选择（首次启动自动弹出）
-- 右键菜单：新建文件 / 新建子文件夹 / 重命名 / 删除 / 在 Finder 打开
-- 内联重命名（Enter 快捷键）
-- 拖拽移动：文件/文件夹拖入目标文件夹或根目录
-- `chokidar` 文件监听，外部修改自动刷新
+- 手动选择并记忆工作区。
+- 递归展示文件夹以及 `.md`、`.markdown` 文件。
+- 新建文件、创建真实空文件夹、重命名、移动和移到废纸篓。
+- 文件或文件夹拖入其他目录进行移动。
+- 同名重命名/移动默认阻止，避免静默覆盖。
+- 工作区路径守卫，拒绝 `..`、绝对路径和符号链接越界访问。
+- chokidar 监听工作区变化并刷新文件树。
 
-### ✍️ 右侧编辑器（CodeMirror 6）
+### Markdown 编辑
 
-- Markdown 语法高亮，明暗主题热切换
-- 行号、当前行高亮、自动换行
-- 快捷键：`⌘B` 粗体 / `⌘I` 斜体 / `⌘K` 链接 / `⌘Z` 撤销 / `⌘S` 手动保存
-- 自动保存（2 秒 debounce）+ 底部状态栏（字数 / 阅读时间 / 保存状态）
-- 粘贴/拖拽图片自动保存到工作区并插入 Markdown 引用
-- `⌘F` 查找 / `⌘H` 替换（自定义面板：匹配计数 + 大小写 + 正则开关）
+- CodeMirror 6 Markdown 语法高亮、行号、活动行和自动换行。
+- `⌘/Ctrl+B` 粗体、`⌘/Ctrl+I` 斜体、`⌘/Ctrl+K` 链接。
+- `⌘/Ctrl+F` 查找、`⌘/Ctrl+H` 替换，支持大小写和正则表达式。
+- 2 秒 debounce 自动保存以及 `⌘/Ctrl+S` 手动保存。
+- 保存操作串行执行；切换文件、工作区、阅读模式或关闭窗口前会先保存。
+- 状态栏展示字数、预计阅读时间和保存状态。
+- 粘贴或拖入图片后保存至 `.md-manage/images/` 并插入 Markdown 引用。
 
-### 📖 阅读模式
+### 阅读与导出
 
-- `unified` 管道渲染（remark + rehype + highlight.js）
-- 支持 GFM（表格、任务列表、删除线）
-- 点击图片放大（Lightbox）
-- `⌘F` 查找（**CSS Custom Highlight API** 零 DOM 修改的高亮）
-- 导出 PDF / HTML（内联样式 + 中文字体）
+- unified + remark + rehype 渲染管道。
+- GFM 表格、任务列表、删除线和 highlight.js 代码高亮。
+- 相对图片以当前 Markdown 文件目录为基准解析。
+- `.md-manage/images/...` 以工作区根目录为基准解析。
+- 中文、空格和特殊字符路径编码。
+- 阅读区搜索、图片放大、PDF 和 HTML 导出。
+- Markdown HTML 经 rehype-sanitize 清洗。
 
-### 🎨 其他
+### 界面
 
-- 极简设计，CSS Variables 驱动，暗色模式自动跟随系统
-- `⌘E` 一键切换 编辑 ↔ 阅读
-- `⌘,` 打开设置面板（内含使用说明）
-- 侧边栏主题切换按钮（☀/🌙/⊚）
-
----
-
-## 技术栈
-
-| 层 | 技术 |
-|---|---|
-| **桌面框架** | Electron 28 |
-| **前端** | React 18 + Vite 5 + TypeScript 5 |
-| **编辑器核心** | CodeMirror 6（`@codemirror/*` 全家桶） |
-| **Markdown 渲染** | unified + remark-parse + remark-gfm + remark-rehype + rehype-highlight + rehype-sanitize |
-| **元数据** | gray-matter（YAML Front Matter） |
-| **状态管理** | Zustand + immer + persist |
-| **样式** | CSS Modules + CSS Variables |
-| **文件监听** | chokidar |
-| **打包** | electron-builder（DMG / NSIS / AppImage） |
-
----
+- 浅色、深色和跟随系统三种主题。
+- `⌘/Ctrl+E` 切换编辑/阅读模式。
+- `⌘/Ctrl+,` 打开设置与使用说明。
+- 窗口位置、尺寸、最大化和全屏状态持久化。
 
 ## 快速开始
 
-### 环境要求
+### 环境
 
-- Node.js ≥ 22
-- pnpm 10（推荐）
+- Node.js 22 或更高版本
+- pnpm 10
 
-### 安装依赖
+### 安装与运行
 
 ```bash
 pnpm install
-```
-
-Electron 二进制下载慢时，可用国内镜像（已在 `.npmrc` 中配置）：
-
-```
-electron_mirror=https://npmmirror.com/mirrors/electron/
-```
-
-### 开发运行
-
-```bash
 pnpm run dev
 ```
 
-Vite 启动 `localhost:5173`，Electron 窗口自动弹出。
+项目的 `.npmrc` 已配置 Electron 国内镜像。开发命令会启动 Vite，并自动打开 Electron 窗口。
 
-### 构建 / 打包
+### 检查、测试和构建
 
 ```bash
-# 仅构建（dist/）
-pnpm run build
-
-# 类型检查
+# Renderer 与 Electron 类型检查
 pnpm run build:check
 
-# 单元测试
+# 交互式测试
 pnpm run test
 
-# 打包为安装包（release/）
+# CI 风格的一次性测试
+pnpm exec vitest run
+
+# 生产构建
+pnpm run build
+
+# 生成安装包
 pnpm run package
 
 # 重新生成应用图标
 pnpm run icon
 ```
 
-打包产物位于 `release/`：
-- macOS: `简记-0.1.0-arm64.dmg` / `*-mac.zip`
-- Windows: `简记 Setup 0.1.0.exe`
-- Linux: `md-manage-0.1.0.AppImage` / `*.deb`
-
----
+生产构建输出到 `dist/`，安装包输出到 `release/`。
 
 ## 项目结构
 
-```
+```text
 md-manage/
-├── electron/                  # Electron 主进程
-│   ├── main.ts                # 窗口创建 + handler 注册 + chokidar
-│   ├── preload.ts             # contextBridge 白名单 API
-│   ├── windowState.ts         # 窗口位置/大小持久化
-│   └── ipc/
-│       ├── fileSystem.ts      # 文件 CRUD + image:save + export
-│       ├── config.ts          # userData 配置读写
-│       ├── contextMenu.ts     # 原生右键菜单
-│       ├── import.ts          # 文件/文件夹导入
-│       └── window.ts          # 最小化/最大化/全屏
-├── src/                       # React 渲染进程
-│   ├── App.tsx                # 根布局 + 全局快捷键
-│   ├── main.tsx               # ReactDOM 入口 + 样式导入
+├── electron/
+│   ├── main.ts                    # 应用与窗口生命周期
+│   ├── preload.ts                 # contextBridge API
+│   ├── windowState.ts             # 窗口状态持久化
+│   ├── ipc/                       # 文件、配置、菜单、导入、窗口 IPC
+│   └── services/
+│       └── workspaceGuard.ts      # 工作区路径和符号链接边界
+├── src/
+│   ├── App.tsx                    # 根布局、主题、全局事件
 │   ├── components/
-│   │   ├── sidebar/           # 左侧文件管理（工具栏 / 文件树 / 内联重命名）
-│   │   ├── editor/            # 编辑器（CodeMirror + 搜索面板 + 模式切换）
-│   │   ├── reader/            # 阅读模式（渲染 + Lightbox + 查找）
-│   │   ├── settings/          # 设置面板（通用/编辑器/外观/快捷键/使用说明）
-│   │   └── dialogs/           # 内联重命名输入框
-│   ├── stores/appStore.ts     # Zustand 状态
-│   ├── hooks/                 # 细粒度 selectors
-│   ├── lib/
-│   │   ├── frontmatter.ts     # gray-matter 解析/序列化
-│   │   ├── markdown.ts        # unified 渲染管道
-│   │   ├── wordCount.ts       # 中英文混排字数
-│   │   └── shortcuts.ts       # CodeMirror 快捷键
-│   ├── types/                 # 类型契约（FileNode / ElectronAPI 等）
-│   └── styles/                # 全局样式 + 主题
-├── build/                     # 打包资源（图标 SVG + PNG）
-├── scripts/generate-icon.mjs  # SVG → 多尺寸 PNG 脚本
-├── tests/unit/                # Vitest 单元测试
-├── document/                  # 需求与设计文档
-├── .github/workflows/         # CI（tsc + vitest + build）
-├── electron-builder.yml       # 打包配置
-└── vite.config.ts             # Vite + vite-plugin-electron 配置
+│   │   ├── sidebar/               # 文件树与文件操作
+│   │   ├── editor/                # CodeMirror、搜索与状态栏
+│   │   ├── reader/                # 阅读、搜索、导出、Lightbox
+│   │   ├── settings/              # 设置与使用说明
+│   │   └── dialogs/               # 行内重命名
+│   ├── services/
+│   │   └── documentSession.ts     # 串行保存与文档切换协调
+│   ├── stores/                    # Zustand 状态
+│   ├── lib/                       # Markdown、Front Matter、字数、快捷键
+│   ├── types/                     # FileNode 与 ElectronAPI 契约
+│   └── styles/                    # 全局主题和阅读排版
+├── tests/unit/                    # Vitest 单元测试
+├── document/                      # 技术、调研、规划与历史文档
+├── build/                         # 应用图标
+├── scripts/                       # 构建辅助脚本
+├── electron-builder.yml
+└── vite.config.ts
 ```
-
----
 
 ## 数据存储
 
-完全基于文件系统，无数据库依赖：
+用户内容完全保存在所选工作区：
 
-```
+```text
 <workspace>/
-├── 其他文件 / 文件夹           # 用户自定义组织
-└── .md-manage/                # 应用数据（隐藏）
-    └── images/                # 粘贴/拖拽的图片
+├── notes.md
+├── subfolder/
+│   ├── README.md
+│   └── chart.png
+└── .md-manage/
+    └── images/                    # 应用粘贴/拖入的图片
 ```
 
-窗口状态、主题、工作区路径由 Electron `userData` 的 `config.json` 管理。
+应用配置保存在 Electron `userData/config.json`，主要包括工作区路径和窗口状态。主题及部分 UI 偏好由 Zustand persist 保存在 localStorage。
 
----
+## 快捷键
 
-## 快捷键速查
+| 功能 | macOS | Windows / Linux |
+|---|---|---|
+| 保存 | `⌘S` | `Ctrl+S` |
+| 粗体 | `⌘B` | `Ctrl+B` |
+| 斜体 | `⌘I` | `Ctrl+I` |
+| 插入链接 | `⌘K` | `Ctrl+K` |
+| 查找 | `⌘F` | `Ctrl+F` |
+| 替换 | `⌘H` | `Ctrl+H` |
+| 编辑/阅读模式 | `⌘E` | `Ctrl+E` |
+| 设置 | `⌘,` | `Ctrl+,` |
+| 撤销/重做 | `⌘Z` / `⌘⇧Z` | `Ctrl+Z` / `Ctrl+Shift+Z` |
 
-| 功能 | 快捷键 |
-|---|---|
-| 保存 | `⌘S` |
-| 加粗 | `⌘B` |
-| 斜体 | `⌘I` |
-| 插入链接 | `⌘K` |
-| 查找 / 替换 | `⌘F` / `⌘H` |
-| 切换 编辑 ↔ 阅读 | `⌘E` |
-| 重命名当前文件 | `Enter`（焦点不在编辑器时） |
-| 删除当前文件 | `⌘⌫` |
-| 打开设置 | `⌘,` |
-| 撤销 / 重做 | `⌘Z` / `⌘⇧Z` |
+## 安全与可靠性
 
----
+- Renderer 未启用 Node.js 集成，并使用 context isolation。
+- preload 只暴露显式白名单 API。
+- 文件 API 被限制在当前工作区内，并检查符号链接逃逸。
+- 删除默认进入系统废纸篓，不回退为静默永久删除。
+- 同名移动和重命名不会覆盖已有目标。
+- Markdown 输出经过 sanitize，本地图片只允许解析到工作区内。
+- 自动保存使用串行队列，旧写入不会把新编辑错误标记为已保存。
 
-## 开发路线图
+仍在优化：Electron sandbox/webSecurity、自定义本地资源协议、外部修改冲突处理、设置项真实生效和大型工作区增量加载。
 
-已实现的版本见 `document/` 目录：
+## 已验证状态
 
-- **v0.2.0**：基线（文件管理 + 编辑器 + 阅读模式 + 导出）
-- **v0.2.1**：用户反馈修复（主题按钮、图片预览、使用说明、砍版本历史等）
-- **v0.3.0**：编辑器高度撑满 + 换行
-- **v0.4.0**：文件拖拽排序
-- **v0.5.0**：KaTeX 数学公式 + Mermaid 图表（规划中）
+当前分支最近一次完整验证结果：
 
-详见 [`document/需求优化清单.md`](./document/需求优化清单.md)。
+- TypeScript Renderer/Electron 检查通过。
+- 4 个测试文件、21 项测试通过。
+- Vite Renderer、Electron main 和 preload 生产构建通过。
+- `pnpm audit --prod` 无已知漏洞。
+- 真实 Electron 窗口完成工作区加载、图片阅读、Lightbox、阅读搜索、编辑自动保存、CRUD、冲突阻止和越界阻止验证。
 
----
+## 文档
+
+- [文档索引](./document/README.md)
+- [技术架构文档](./document/技术架构文档.md)
+- [项目调研报告](./document/项目调研报告.md)
+- [项目优化与重构方案](./document/项目优化与重构方案.md)
+
+## 已知限制
+
+- 外部修改当前打开文件时，文件树会刷新，但尚未提供完整的内容冲突解决界面。
+- 设置面板中的字体大小、Tab 宽度和自动保存选项尚未全部接入编辑器。
+- Renderer 仍包含完整 CodeMirror language-data，生产主 chunk 偏大。
+- PDF 导出依赖 Electron Chromium；三平台安装包需要分别进行人工验收。
+- 应用当前仍设置 `sandbox: false` 和 `webSecurity: false`，后续计划通过受控资源协议收紧。
 
 ## License
 
-MIT
+`package.json` 声明 MIT。正式发布前应补充独立的 `LICENSE` 文件。

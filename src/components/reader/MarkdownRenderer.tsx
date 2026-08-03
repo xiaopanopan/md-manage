@@ -30,13 +30,13 @@ export function MarkdownRenderer() {
   // 渲染 Markdown → HTML
   useEffect(() => {
     let cancelled = false;
-    renderMarkdown(body, workspace ?? undefined).then((result) => {
+    renderMarkdown(body, workspace ?? undefined, currentFile ?? undefined).then((result) => {
       if (!cancelled) setHtml(result);
     });
     return () => {
       cancelled = true;
     };
-  }, [body, workspace]);
+  }, [body, workspace, currentFile]);
 
   // Cmd+F 打开查找栏
   useEffect(() => {
