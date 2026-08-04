@@ -19,13 +19,7 @@
   background: var(--bg-hover);
 }
 
-.item.selected {
-  background: var(--color-black);
-  color: var(--bg-white);
-}
-
-.item.open:not(.selected) {
-  box-shadow: inset 2px 0 0 var(--color-black);
+.item.open {
   background: var(--bg-hover);
 }
 
@@ -35,7 +29,6 @@
   opacity: 0.6;
 }
 
-.item.selected .icon,
 .item.open .icon {
   opacity: 1;
 }

@@ -144,16 +144,6 @@
   transition: background var(--transition-fast);
 }
 
-.fileList.rootDropTarget {
-  background: rgba(0, 0, 0, 0.04);
-  outline: 1px dashed var(--color-gray-500);
-  outline-offset: -4px;
-}
-
-[data-theme="dark"] .fileList.rootDropTarget {
-  background: rgba(255, 255, 255, 0.05);
-}
-
 /* 空状态 */
 .emptyState {
   display: flex;
@@ -182,36 +172,4 @@
 
 .emptyBtn:hover {
   background: var(--bg-hover);
-}
-
-.toast {
-  position: absolute;
-  right: 8px;
-  bottom: 10px;
-  left: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
-  color: var(--bg-white);
-  background: var(--color-black);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  font-size: var(--text-xs);
-  z-index: var(--z-toolbar);
-}
-
-.toast span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.toast button {
-  flex-shrink: 0;
-  padding: 2px 6px;
-  color: inherit;
-  border: 1px solid currentColor;
-  border-radius: var(--radius-sm);
 }

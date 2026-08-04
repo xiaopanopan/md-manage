@@ -3,7 +3,6 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type {
   AppStore,
-  ExplorerSelection,
   ExplorerSortMode,
   SortDirection,
   ViewMode,
@@ -23,7 +22,6 @@ export const useAppStore = create<AppStore>()(
         isDirty: false,
         files: [],
         recentFiles: [],
-        selectedEntry: null,
         expandedPaths: [],
 
         viewMode: 'edit' as ViewMode,
@@ -60,12 +58,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         setFiles(files: FileNode[]) {
-          set((state) => {
-            state.files = files;
-            if (state.selectedEntry && !findNode(files, state.selectedEntry.path)) {
-              state.selectedEntry = null;
-            }
-          });
+          set((state) => { state.files = files; });
         },
 
         addRecentFile(path: string) {
@@ -73,10 +66,6 @@ export const useAppStore = create<AppStore>()(
             const filtered = state.recentFiles.filter((p) => p !== path);
             state.recentFiles = [path, ...filtered].slice(0, MAX_RECENT_FILES);
           });
-        },
-
-        setSelectedEntry(entry: ExplorerSelection | null) {
-          set((state) => { state.selectedEntry = entry; });
         },
 
         setFolderExpanded(path: string, expanded: boolean) {
@@ -88,13 +77,11 @@ export const useAppStore = create<AppStore>()(
           });
         },
 
-        revealEntry(path: string, ancestors: string[]) {
+        expandAncestors(ancestors: string[]) {
           set((state) => {
             const values = new Set(state.expandedPaths);
             for (const ancestor of ancestors) values.add(ancestor);
             state.expandedPaths = Array.from(values);
-            const node = findNode(state.files, path);
-            state.selectedEntry = node ? { path, kind: node.type } : null;
           });
         },
 
@@ -148,12 +135,3 @@ export const useAppStore = create<AppStore>()(
     )
   )
 );
-
-function findNode(nodes: FileNode[], targetPath: string): FileNode | undefined {
-  for (const node of nodes) {
-    if (node.path === targetPath) return node;
-    const nested = node.children ? findNode(node.children, targetPath) : undefined;
-    if (nested) return nested;
-  }
-  return undefined;
-}

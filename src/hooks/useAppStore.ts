@@ -9,7 +9,6 @@ export const useCurrentContent = () => useStore((s) => s.currentContent);
 export const useIsDirty = () => useStore((s) => s.isDirty);
 export const useFiles = () => useStore((s) => s.files);
 export const useRecentFiles = () => useStore((s) => s.recentFiles);
-export const useSelectedEntry = () => useStore((s) => s.selectedEntry);
 export const useExpandedPaths = () => useStore((s) => s.expandedPaths);
 
 // ── UI 状态 ──

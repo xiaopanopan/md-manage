@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
+import { describeDesktopError } from '@/lib/errors';
 import styles from './CreateDialog.module.css';
 
 interface Props {
@@ -36,7 +37,7 @@ export function CreateDialog({ kind, initialName, targetLabel, onConfirm, onCanc
       await onConfirm(value);
     } catch (cause) {
       console.error('[CreateDialog] create failed:', cause);
-      setError('创建失败：名称可能已存在或不可用。');
+      setError(describeDesktopError(cause, '创建失败，请换一个名称。'));
       setSubmitting(false);
     }
   };

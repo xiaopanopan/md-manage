@@ -21,6 +21,7 @@ async function showFileMenu(data: Record<string, string>) {
   const itemActions = data.isRoot === 'true' ? [] : await Promise.all([
     PredefinedMenuItem.new({ item: 'Separator' }),
     MenuItem.new({ text: '重命名', accelerator: 'CmdOrCtrl+Enter', action: action('rename') }),
+    MenuItem.new({ text: '移动到…', action: action('move') }),
     MenuItem.new({
       text: '在文件夹中打开',
       accelerator: 'CmdOrCtrl+Shift+O',

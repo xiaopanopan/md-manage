@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { FileNode } from '@/types/file';
 import {
   findAncestorFolders,
+  isSameOrDescendant,
   relativeDisplayPath,
-  resolveCreateTarget,
+  remapPath,
+  resolveCreateDir,
   suggestAvailableName,
 } from '@/lib/explorer/tree';
 
@@ -41,17 +43,13 @@ const tree: FileNode[] = [
 ];
 
 describe('explorer tree helpers', () => {
-  it('resolves create destinations from folder, file, and empty selection', () => {
-    expect(resolveCreateTarget('/workspace', null, tree)).toBe('/workspace');
-    expect(resolveCreateTarget('/workspace', { path: '/workspace/docs', kind: 'folder' }, tree))
-      .toBe('/workspace/docs');
-    expect(resolveCreateTarget('/workspace', { path: '/workspace/docs/guide.md', kind: 'file' }, tree))
-      .toBe('/workspace/docs');
+  it('creates in the open document folder and falls back to the workspace', () => {
+    expect(resolveCreateDir('/workspace', null, tree)).toBe('/workspace');
+    expect(resolveCreateDir('/workspace', '/workspace/docs/guide.md', tree)).toBe('/workspace/docs');
   });
 
-  it('falls back to the workspace when a selection is stale', () => {
-    expect(resolveCreateTarget('/workspace', { path: '/missing', kind: 'folder' }, tree))
-      .toBe('/workspace');
+  it('falls back to the workspace when the open path is no longer in the tree', () => {
+    expect(resolveCreateDir('/workspace', '/workspace/removed.md', tree)).toBe('/workspace');
   });
 
   it('finds ancestor folders for reveal operations', () => {
@@ -66,5 +64,18 @@ describe('explorer tree helpers', () => {
   it('formats root and nested target labels', () => {
     expect(relativeDisplayPath('/workspace', '/workspace')).toBe('工作区根目录');
     expect(relativeDisplayPath('/workspace', '/workspace/docs')).toBe('docs');
+  });
+
+  it('detects descendants on both posix and windows separators', () => {
+    expect(isSameOrDescendant('/a/b', '/a/b')).toBe(true);
+    expect(isSameOrDescendant('/a/b/c.md', '/a/b')).toBe(true);
+    expect(isSameOrDescendant('C:\\a\\b\\c.md', 'C:\\a\\b')).toBe(true);
+    expect(isSameOrDescendant('/a/bc.md', '/a/b')).toBe(false);
+  });
+
+  it('remaps affected path prefixes and leaves others untouched', () => {
+    expect(remapPath('/ws/old/a.md', '/ws/old', '/ws/new')).toBe('/ws/new/a.md');
+    expect(remapPath('/ws/old', '/ws/old', '/ws/new')).toBe('/ws/new');
+    expect(remapPath('/ws/other/a.md', '/ws/old', '/ws/new')).toBe('/ws/other/a.md');
   });
 });

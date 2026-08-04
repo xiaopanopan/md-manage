@@ -9,11 +9,6 @@ export type Theme = 'light' | 'dark' | 'auto';
 export type ExplorerSortMode = 'name' | 'modified' | 'type';
 export type SortDirection = 'asc' | 'desc';
 
-export interface ExplorerSelection {
-  path: string;
-  kind: 'file' | 'folder';
-}
-
 export interface AppState {
   // ── 文件状态 ──
   currentFile: string | null;
@@ -21,7 +16,6 @@ export interface AppState {
   isDirty: boolean;
   files: FileNode[];
   recentFiles: string[];
-  selectedEntry: ExplorerSelection | null;
   expandedPaths: string[];
 
   // ── UI 状态 ──
@@ -43,9 +37,8 @@ export interface AppActions {
   markDirty(): void;
   setFiles(files: FileNode[]): void;
   addRecentFile(path: string): void;
-  setSelectedEntry(entry: ExplorerSelection | null): void;
   setFolderExpanded(path: string, expanded: boolean): void;
-  revealEntry(path: string, ancestors: string[]): void;
+  expandAncestors(ancestors: string[]): void;
 
   switchMode(mode: ViewMode): void;
   setTheme(theme: Theme): void;

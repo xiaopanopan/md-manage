@@ -15,6 +15,7 @@ import { EditorArea } from '@/components/editor/EditorArea';
 import { MarkdownRenderer } from '@/components/reader/MarkdownRenderer';
 import { ModeSwitch } from '@/components/editor/ModeSwitch';
 import { flushCurrentDocument } from '@/services/documentSession';
+import { describeDesktopError } from '@/lib/errors';
 
 // 主题应用到 <html> 的 data-theme 属性（带平滑过渡）
 function applyTheme(theme: Theme, systemDark: boolean) {
@@ -30,12 +31,6 @@ function applyTheme(theme: Theme, systemDark: boolean) {
   } else {
     root.setAttribute('data-theme', resolved);
   }
-}
-
-function isSameOrDescendant(candidate: string, parent: string): boolean {
-  return candidate === parent
-    || candidate.startsWith(`${parent}/`)
-    || candidate.startsWith(`${parent}\\`);
 }
 
 export default function App() {
@@ -103,14 +98,6 @@ export default function App() {
     const onKeyDown = async (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
 
-      if (e.key === 'Escape') {
-        const target = e.target as HTMLElement | null;
-        if (!target?.closest('input, textarea, [contenteditable="true"], [role="dialog"]')) {
-          useAppStore.getState().setSelectedEntry(null);
-        }
-        return;
-      }
-
       // Cmd+, → 打开设置
       if (mod && e.key === ',') {
         e.preventDefault();
@@ -135,7 +122,7 @@ export default function App() {
         return;
       }
 
-      // Cmd+Backspace / Cmd+Delete → 删除当前文件
+      // Cmd+Backspace / Cmd+Delete → 删除当前打开的文件
       // 仅在焦点不在编辑器（CodeMirror）/输入框内时触发
       if (mod && (e.key === 'Backspace' || e.key === 'Delete')) {
         const target = e.target as HTMLElement | null;
@@ -143,31 +130,22 @@ export default function App() {
           target?.closest('.cm-editor') ||
           target?.closest('input, textarea, [contenteditable="true"]');
         if (inEditable) return;
-        const state = useAppStore.getState();
-        const targetPath = state.selectedEntry?.path ?? currentFile;
-        if (!targetPath) return;
+        if (!currentFile) return;
         e.preventDefault();
-        const label = targetPath.split(/[\\/]/).pop() ?? targetPath;
+        const label = currentFile.split(/[\\/]/).pop() ?? currentFile;
         if (!window.confirm(`确定将“${label}”移到废纸篓吗？`)) return;
         try {
-          if (currentFile && isSameOrDescendant(currentFile, targetPath)) {
-            await flushCurrentDocument();
-          }
-          await window.desktopAPI?.file.delete(targetPath);
-          useAppStore.setState({
-            selectedEntry: null,
-            ...(currentFile && isSameOrDescendant(currentFile, targetPath)
-              ? { currentFile: null, currentContent: '', isDirty: false }
-              : {}),
-          });
+          await flushCurrentDocument();
+          await window.desktopAPI?.file.delete(currentFile);
+          useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
         } catch (err) {
           console.error('[App] delete failed:', err);
-          window.alert('无法移到废纸篓，文件没有被删除。');
+          window.alert(describeDesktopError(err, '无法移到废纸篓，文件没有被删除。'));
         }
         return;
       }
 
-      // Enter → 重命名当前文件（仅在焦点不在编辑器/输入框时）
+      // Enter → 重命名当前打开的文件（仅在焦点不在编辑器/输入框时）
       if (!mod && e.key === 'Enter') {
         const target = e.target as HTMLElement | null;
         const inEditable =
@@ -175,11 +153,10 @@ export default function App() {
           target?.closest('input, textarea, [contenteditable="true"]') ||
           target?.tagName === 'BUTTON';
         if (inEditable) return;
-        const targetPath = useAppStore.getState().selectedEntry?.path ?? currentFile;
-        if (!targetPath) return;
+        if (!currentFile) return;
         e.preventDefault();
         window.dispatchEvent(
-          new CustomEvent('md-manage:rename', { detail: { path: targetPath } })
+          new CustomEvent('md-manage:rename', { detail: { path: currentFile } })
         );
         return;
       }
