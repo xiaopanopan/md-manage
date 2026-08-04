@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: file:; font-src 'self' data:;"
-    />
+    <!--
+      CSP 由 src-tauri/tauri.conf.json 的 app.security.csp 单点定义，Tauri 在生产构建时
+      作为响应头注入。这里不要再放 meta CSP：header 与 meta 同时存在时浏览器取交集，
+      重复定义会静默拦截 md-manage-resource:// 图片等资源。
+    -->
     <title>简记</title>
   </head>
   <body>

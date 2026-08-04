@@ -9,7 +9,7 @@ function installFileWriter(write: (path: string, content: string) => Promise<voi
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
     value: {
-      electronAPI: {
+      desktopAPI: {
         file: { write },
       },
     },

@@ -1,5 +1,5 @@
 // ============================================================
-// md-manage — ElectronAPI 接口契约
+// md-manage — Desktop API 接口契约
 // ============================================================
 
 import type { FileNode } from './file';
@@ -41,7 +41,7 @@ export interface ContextMenuAPI {
 }
 
 export interface MenuAction {
-  type: 'delete' | 'newFile' | 'newFolder' | 'rename';
+  type: 'delete' | 'newFile' | 'newFolder' | 'rename' | 'move';
   payload: Record<string, string>;
 }
 
@@ -61,7 +61,11 @@ export interface WindowAPI {
   confirmClose(): Promise<void>;
 }
 
-export interface ElectronAPI {
+export interface ShellAPI {
+  openExternal(url: string): Promise<void>;
+}
+
+export interface DesktopAPI {
   file: FileAPI;
   workspace: WorkspaceAPI;
   config: ConfigAPI;
@@ -70,6 +74,7 @@ export interface ElectronAPI {
   import: ImportAPI;
   contextMenu: ContextMenuAPI;
   window: WindowAPI;
+  shell: ShellAPI;
   onFileChanged(callback: (info: unknown) => void): () => void;
   onMenuAction(callback: (action: MenuAction) => void): () => void;
   onBeforeClose(callback: () => void): () => void;
@@ -78,6 +83,6 @@ export interface ElectronAPI {
 // 全局类型扩展
 declare global {
   interface Window {
-    electronAPI: ElectronAPI;
+    desktopAPI: DesktopAPI;
   }
 }

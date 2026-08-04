@@ -17,11 +17,11 @@ export function GeneralSettings() {
       window.alert('当前文件保存失败，无法切换工作区。');
       return;
     }
-    const ws = await window.electronAPI?.workspace.open();
+    const ws = await window.desktopAPI?.workspace.open();
     if (ws) {
       setWorkspace(ws);
       useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
-      const files = await window.electronAPI?.file.list(ws);
+      const files = await window.desktopAPI?.file.list(ws);
       if (files) setFiles(files);
     }
   };
@@ -59,7 +59,7 @@ export function GeneralSettings() {
 
 export function EditorSettings() {
   const saveEditorSetting = async (key: string, value: unknown) => {
-    await window.electronAPI?.config.set(`settings.editor.${key}`, value);
+    await window.desktopAPI?.config.set(`settings.editor.${key}`, value);
   };
 
   return (

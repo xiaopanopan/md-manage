@@ -8,7 +8,6 @@ interface Props {
   renamingPath: string | null;
   onRenameConfirm: (file: FileNode, newName: string) => void;
   onRenameCancel: () => void;
-  onMoveFile: (srcPath: string, destDir: string) => void;
 }
 
 export function FileTree({
@@ -17,7 +16,6 @@ export function FileTree({
   renamingPath,
   onRenameConfirm,
   onRenameCancel,
-  onMoveFile,
 }: Props) {
   return (
     <>
@@ -30,7 +28,6 @@ export function FileTree({
             renamingPath={renamingPath}
             onRenameConfirm={onRenameConfirm}
             onRenameCancel={onRenameCancel}
-            onMoveFile={onMoveFile}
           />
         ) : (
           <FileItem

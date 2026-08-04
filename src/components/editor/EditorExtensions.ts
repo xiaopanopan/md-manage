@@ -181,7 +181,7 @@ function imageHandlers() {
         if (!blob) return;
         const buffer = Array.from(new Uint8Array(await blob.arrayBuffer()));
         const ext = mimeToExt(img.type);
-        const relPath = await window.electronAPI?.image.save(buffer, ext);
+        const relPath = await window.desktopAPI?.image.save(buffer, ext);
         if (relPath) {
           insertText(view, `![](${relPath})`);
         }
@@ -200,7 +200,7 @@ function imageHandlers() {
           // 优先用文件名扩展名（保留原始信息），fallback 到 MIME 映射
           const fileExt = file.name.includes('.') ? file.name.split('.').pop()! : '';
           const ext = fileExt || mimeToExt(file.type);
-          const relPath = await window.electronAPI?.image.save(buffer, ext);
+          const relPath = await window.desktopAPI?.image.save(buffer, ext);
           if (relPath) {
             insertText(view, `![](${relPath})\n`);
           }

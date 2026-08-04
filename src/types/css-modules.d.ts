@@ -3,6 +3,8 @@ declare module '*.module.css' {
   export default classes;
 }
 
+declare module '*.css' {}
+
 declare module 'gray-matter' {
   interface GrayMatterFile {
     data: Record<string, unknown>;

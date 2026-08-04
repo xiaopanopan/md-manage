@@ -1,36 +1,29 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FileNode } from '@/types/file';
 import type { MenuAction } from '@/types/ipc';
-import { useFiles, useWorkspace, useCurrentFile } from '@/hooks/useAppStore';
+import {
+    useExplorerSort,
+    useFiles,
+    useWorkspace,
+} from '@/hooks/useAppStore';
 import { useAppStore } from '@/stores/appStore';
 import { Folder } from './Folder';
 import { FileItem } from './FileItem';
 import { flushCurrentDocument, openDocument } from '@/services/documentSession';
+import { CreateDialog } from '@/components/dialogs/CreateDialog';
+import { MoveDialog } from '@/components/dialogs/MoveDialog';
+import { sortFileTree } from '@/lib/explorer/sortFileTree';
+import { describeDesktopError } from '@/lib/errors';
+import {
+    findAncestorFolders,
+    findNode,
+    isSameOrDescendant,
+    relativeDisplayPath,
+    remapPath,
+    resolveCreateDir,
+    suggestAvailableName,
+} from '@/lib/explorer/tree';
 import styles from './Sidebar.module.css';
-
-function isSameOrDescendant(candidate: string, parent: string): boolean {
-    if (candidate === parent) return true;
-    return candidate.startsWith(`${parent}/`) || candidate.startsWith(`${parent}\\`);
-}
-
-function remapPath(candidate: string, oldPath: string, newPath: string): string {
-    if (!isSameOrDescendant(candidate, oldPath)) return candidate;
-    return `${newPath}${candidate.slice(oldPath.length)}`;
-}
-
-function findFile(nodes: FileNode[], targetPath: string): FileNode | undefined {
-    for (const node of nodes) {
-        if (node.path === targetPath) return node;
-        const found = node.children ? findFile(node.children, targetPath) : undefined;
-        if (found) return found;
-    }
-    return undefined;
-}
-
-function requestName(message: string, initialValue: string): string | null {
-    const value = window.prompt(message, initialValue)?.trim();
-    return value || null;
-}
 
 // ── 图标 ─────────────────────────────────────────────────────
 const NewFileIcon = () => (
@@ -82,6 +75,12 @@ const SettingsIcon = () => (
     </svg>
 );
 
+const SortIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M3 4h7M3 8h5M3 12h3M11 7v6M9 11l2 2 2-2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
 
 export function Sidebar() {
     const files = useFiles();
@@ -91,22 +90,19 @@ export function Sidebar() {
     const theme = useAppStore((s) => s.theme);
     const setTheme = useAppStore((s) => s.setTheme);
     const openSettings = useAppStore((s) => s.openSettings);
+    const explorerSort = useExplorerSort();
 
     const [renamingPath, setRenamingPath] = useState<string | null>(null);
-    const [rootDragOver, setRootDragOver] = useState(false);
+    const [moving, setMoving] = useState<FileNode | null>(null);
+    const [creating, setCreating] = useState<{
+        kind: 'file' | 'folder';
+        targetDir: string;
+    } | null>(null);
 
-    const currentFile = useCurrentFile();
-    // 活动目录：当前打开文件所在目录；否则工作区根目录
-    const activeDir = currentFile
-        ? findFile(files, currentFile)?.parentPath ?? workspace
-        : workspace;
-
-    // 拖拽全局结束 → 清除根目录高亮
-    useEffect(() => {
-        const clear = () => setRootDragOver(false);
-        window.addEventListener('dragend', clear);
-        return () => window.removeEventListener('dragend', clear);
-    }, []);
+    const sortedFiles = useMemo(
+        () => sortFileTree(files, explorerSort.mode, explorerSort.direction),
+        [files, explorerSort.mode, explorerSort.direction]
+    );
 
     // 全局 Enter 键触发重命名（由 App.tsx 派发）
     useEffect(() => {
@@ -120,8 +116,8 @@ export function Sidebar() {
 
     // 响应右键菜单动作
     useEffect(() => {
-        if (!window.electronAPI?.onMenuAction) return;
-        const unsub = window.electronAPI.onMenuAction(async (action: MenuAction) => {
+        if (!window.desktopAPI?.onMenuAction) return;
+        const unsub = window.desktopAPI.onMenuAction(async (action: MenuAction) => {
             const { type, payload } = action;
             const targetPath = payload.path ?? '';
             const isFolder = payload.isFolder === 'true';
@@ -132,19 +128,21 @@ export function Sidebar() {
 
             switch (type) {
                 case 'delete': {
+                    const label = targetPath.split(/[\\/]/).pop() ?? targetPath;
+                    if (!window.confirm(`确定将“${label}”移到废纸篓吗？`)) break;
                     try {
                         const opened = useAppStore.getState().currentFile;
                         if (opened && isSameOrDescendant(opened, targetPath)) {
                             await flushCurrentDocument();
                         }
-                        await window.electronAPI.file.delete(targetPath);
+                        await window.desktopAPI.file.delete(targetPath);
                         if (opened && isSameOrDescendant(opened, targetPath)) {
                             useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
                         }
                         await refreshFiles();
                     } catch (e) {
                         console.error('[Sidebar] delete failed:', e);
-                        window.alert('无法移到废纸篓，文件没有被删除。');
+                        window.alert(describeDesktopError(e, '无法移到废纸篓，文件没有被删除。'));
                     }
                     break;
                 }
@@ -152,29 +150,17 @@ export function Sidebar() {
                     setRenamingPath(targetPath);
                     break;
                 }
+                case 'move': {
+                    const node = findNode(useAppStore.getState().files, targetPath);
+                    if (node) setMoving(node);
+                    break;
+                }
                 case 'newFile': {
-                    const name = requestName('新建 Markdown 文件', 'untitled.md');
-                    if (!name) break;
-                    try {
-                        const newPath = await window.electronAPI.file.create(contextDir, name);
-                        await refreshFiles();
-                        await openDocument(newPath);
-                    } catch (e) {
-                        console.error('[Sidebar] newFile failed:', e);
-                        window.alert('创建失败：名称可能已存在或不可用。');
-                    }
+                    setCreating({ kind: 'file', targetDir: contextDir });
                     break;
                 }
                 case 'newFolder': {
-                    const name = requestName('新建文件夹', '新文件夹');
-                    if (!name) break;
-                    try {
-                        await window.electronAPI.file.createFolder(contextDir, name);
-                        await refreshFiles();
-                    } catch (e) {
-                        console.error('[Sidebar] newFolder failed:', e);
-                        window.alert('创建失败：名称可能已存在或不可用。');
-                    }
+                    setCreating({ kind: 'folder', targetDir: contextDir });
                     break;
                 }
             }
@@ -183,12 +169,14 @@ export function Sidebar() {
     }, [workspace]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const refreshFiles = useCallback(async () => {
-        if (!workspace || !window.electronAPI) return;
+        if (!workspace || !window.desktopAPI) return [] as FileNode[];
         try {
-            const updated = await window.electronAPI.file.list(workspace);
+            const updated = await window.desktopAPI.file.list(workspace);
             setFiles(updated);
+            return updated;
         } catch (e) {
             console.error('[Sidebar] refreshFiles failed:', e);
+            return [] as FileNode[];
         }
     }, [workspace, setFiles]);
 
@@ -211,15 +199,17 @@ export function Sidebar() {
                 if (current && isSameOrDescendant(current, file.path)) {
                     await flushCurrentDocument();
                 }
-                const newPath = await window.electronAPI.file.rename(file.path, finalName);
+                const newPath = await window.desktopAPI.file.rename(file.path, finalName);
                 useAppStore.setState({
                     currentFile: current ? remapPath(current, file.path, newPath) : null,
                     recentFiles: state.recentFiles.map((p) => remapPath(p, file.path, newPath)),
+                    expandedPaths: state.expandedPaths.map((p) => remapPath(p, file.path, newPath)),
                 });
-                await refreshFiles();
+                const updated = await refreshFiles();
+                useAppStore.getState().expandAncestors(findAncestorFolders(updated, newPath));
             } catch (e) {
                 console.error('[Sidebar] rename failed:', e);
-                window.alert('重命名失败：目标名称可能已存在或不可用。');
+                window.alert(describeDesktopError(e, '重命名失败，名称没有被修改。'));
             }
         },
         [refreshFiles]
@@ -227,31 +217,27 @@ export function Sidebar() {
 
     const handleRenameCancel = useCallback(() => setRenamingPath(null), []);
 
-    const handleMoveFile = useCallback(
-        async (srcPath: string, destDir: string) => {
-            // 验证：不能拖到自身（文件夹）
-            if (srcPath === destDir) return;
-            // 验证：不能移动到自己的子目录（避免循环）
-            if (isSameOrDescendant(destDir, srcPath)) return;
-
-            try {
-                const state = useAppStore.getState();
-                const current = state.currentFile;
-                if (current && isSameOrDescendant(current, srcPath)) {
-                    await flushCurrentDocument();
-                }
-                const newPath = await window.electronAPI.file.move(srcPath, destDir);
-                useAppStore.setState({
-                    currentFile: current ? remapPath(current, srcPath, newPath) : null,
-                    recentFiles: state.recentFiles.map((p) => remapPath(p, srcPath, newPath)),
-                });
-                await refreshFiles();
-            } catch (err) {
-                console.error('[Sidebar] move failed:', err);
-                window.alert('移动失败：目标位置可能已有同名项目。');
+    // 「移动到…」：失败时抛给 MoveDialog，由弹窗按错误码展示原因并保持打开。
+    const handleMoveConfirm = useCallback(
+        async (destDir: string) => {
+            if (!moving) return;
+            const source = moving;
+            const state = useAppStore.getState();
+            const current = state.currentFile;
+            if (current && isSameOrDescendant(current, source.path)) {
+                await flushCurrentDocument();
             }
+            const newPath = await window.desktopAPI.file.move(source.path, destDir);
+            useAppStore.setState({
+                currentFile: current ? remapPath(current, source.path, newPath) : null,
+                recentFiles: state.recentFiles.map((p) => remapPath(p, source.path, newPath)),
+                expandedPaths: state.expandedPaths.map((p) => remapPath(p, source.path, newPath)),
+            });
+            const updated = await refreshFiles();
+            useAppStore.getState().expandAncestors(findAncestorFolders(updated, newPath));
+            setMoving(null);
         },
-        [refreshFiles]
+        [moving, refreshFiles]
     );
 
     const handleOpenWorkspace = async () => {
@@ -262,42 +248,46 @@ export function Sidebar() {
             window.alert('当前文件保存失败，无法切换工作区。');
             return;
         }
-        const ws = await window.electronAPI.workspace.open();
+        const ws = await window.desktopAPI.workspace.open();
         if (ws) {
             setWorkspace(ws);
-            useAppStore.setState({ currentFile: null, currentContent: '', isDirty: false });
-            const updated = await window.electronAPI.file.list(ws);
+            useAppStore.setState({
+                currentFile: null,
+                currentContent: '',
+                isDirty: false,
+                expandedPaths: [],
+            });
+            const updated = await window.desktopAPI.file.list(ws);
             if (updated) setFiles(updated);
         }
     };
 
-    const handleNewFile = async () => {
-        if (!workspace || !window.electronAPI) return;
-        const targetDir = activeDir ?? workspace;
-        const name = requestName('新建 Markdown 文件', 'untitled.md');
-        if (!name) return;
-        try {
-            const newPath = await window.electronAPI.file.create(targetDir, name);
-            await refreshFiles();
-            await openDocument(newPath);
-        } catch (err) {
-            console.error('[Sidebar] create file failed:', err);
-            window.alert('创建失败：名称可能已存在或不可用。');
-        }
+    const handleNewFile = () => {
+        if (!workspace || !window.desktopAPI) return;
+        const targetDir = resolveCreateDir(workspace, useAppStore.getState().currentFile, files);
+        setCreating({ kind: 'file', targetDir });
     };
 
-    const handleNewFolder = async () => {
-        if (!workspace || !window.electronAPI) return;
-        const targetDir = activeDir ?? workspace;
-        const name = requestName('新建文件夹', '新文件夹');
-        if (!name) return;
-        try {
-            await window.electronAPI.file.createFolder(targetDir, name);
-            await refreshFiles();
-        } catch (err) {
-            console.error('[Sidebar] create folder failed:', err);
-            window.alert('创建失败：名称可能已存在或不可用。');
+    const handleNewFolder = () => {
+        if (!workspace || !window.desktopAPI) return;
+        const targetDir = resolveCreateDir(workspace, useAppStore.getState().currentFile, files);
+        setCreating({ kind: 'folder', targetDir });
+    };
+
+    const handleCreateConfirm = async (name: string) => {
+        if (!creating) return;
+        let newPath: string;
+        if (creating.kind === 'file') {
+            newPath = await window.desktopAPI.file.create(creating.targetDir, name);
+            const updated = await refreshFiles();
+            useAppStore.getState().expandAncestors(findAncestorFolders(updated, newPath));
+            await openDocument(newPath);
+        } else {
+            newPath = await window.desktopAPI.file.createFolder(creating.targetDir, name);
+            const updated = await refreshFiles();
+            useAppStore.getState().expandAncestors(findAncestorFolders(updated, newPath));
         }
+        setCreating(null);
     };
 
     const handleThemeToggle = () => {
@@ -310,9 +300,6 @@ export function Sidebar() {
 
     return (
         <aside className={styles.sidebar}>
-            {/* macOS Traffic Lights 空间 */}
-            <div className={styles.trafficArea} />
-
             {/* 工具栏 */}
             <div className={styles.toolbar}>
                 <span className={styles.toolbarTitle}>
@@ -333,6 +320,25 @@ export function Sidebar() {
                     >
                         {themeIcon}
                     </button>
+                    <label className={styles.sortControl} data-tooltip="文件排序">
+                        <SortIcon />
+                        <select
+                            aria-label="文件排序"
+                            value={`${explorerSort.mode}:${explorerSort.direction}`}
+                            onChange={(event) => {
+                                const [mode, direction] = event.target.value.split(':') as [
+                                    'name' | 'modified' | 'type',
+                                    'asc' | 'desc',
+                                ];
+                                useAppStore.getState().setExplorerSort(mode, direction);
+                            }}
+                        >
+                            <option value="name:asc">名称升序</option>
+                            <option value="name:desc">名称降序</option>
+                            <option value="modified:desc">最近修改</option>
+                            <option value="type:asc">文件类型</option>
+                        </select>
+                    </label>
                     <button
                         className={styles.iconBtn}
                         data-tooltip="新建文件"
@@ -361,24 +367,16 @@ export function Sidebar() {
 
             {/* 文件列表（也是根目录 drop zone） */}
             <div
-                className={`${styles.fileList} ${rootDragOver ? styles.rootDropTarget : ''}`}
-                onDragOver={(e) => {
-                    if (!workspace) return;
-                    if (!e.dataTransfer.types.includes('application/x-file-path')) return;
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    if (!rootDragOver) setRootDragOver(true);
-                }}
-                onDragLeave={(e) => {
-                    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-                    setRootDragOver(false);
-                }}
-                onDrop={(e) => {
-                    e.preventDefault();
-                    setRootDragOver(false);
-                    if (!workspace) return;
-                    const srcPath = e.dataTransfer.getData('application/x-file-path');
-                    if (srcPath) handleMoveFile(srcPath, workspace);
+                className={styles.fileList}
+                onContextMenu={(event) => {
+                    if (!workspace || event.target !== event.currentTarget) return;
+                    event.preventDefault();
+                    window.desktopAPI.contextMenu.show('file', {
+                        path: workspace,
+                        parentPath: workspace,
+                        isFolder: 'true',
+                        isRoot: 'true',
+                    });
                 }}
             >
                 {!workspace ? (
@@ -390,7 +388,7 @@ export function Sidebar() {
                     </div>
                 ) : (
                     <>
-                        {files.map((node) =>
+                        {sortedFiles.map((node) =>
                             node.type === 'folder' ? (
                                 <Folder
                                     key={node.path}
@@ -399,7 +397,6 @@ export function Sidebar() {
                                     renamingPath={renamingPath}
                                     onRenameConfirm={handleRenameConfirm}
                                     onRenameCancel={handleRenameCancel}
-                                    onMoveFile={handleMoveFile}
                                 />
                             ) : (
                                 <FileItem
@@ -415,6 +412,24 @@ export function Sidebar() {
                     </>
                 )}
             </div>
+            {creating && (
+                <CreateDialog
+                    kind={creating.kind}
+                    initialName={suggestAvailableName(creating.kind, creating.targetDir, files)}
+                    targetLabel={relativeDisplayPath(workspace ?? '', creating.targetDir)}
+                    onConfirm={handleCreateConfirm}
+                    onCancel={() => setCreating(null)}
+                />
+            )}
+            {moving && workspace && (
+                <MoveDialog
+                    source={moving}
+                    workspace={workspace}
+                    nodes={files}
+                    onConfirm={handleMoveConfirm}
+                    onCancel={() => setMoving(null)}
+                />
+            )}
         </aside>
     );
 }

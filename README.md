@@ -1,193 +1,188 @@
 # 简记 · md-manage
 
-一款本地优先的 Markdown 文件管理与写作桌面应用。工作区就是普通文件夹，不依赖账号、云服务或数据库。
+一款基于 Tauri 2 的本地优先 Markdown 文件管理与写作桌面应用。工作区就是普通文件夹，不依赖账号、云服务或数据库。
 
-![Electron](https://img.shields.io/badge/Electron-28-47848F)
+![Tauri](https://img.shields.io/badge/Tauri-2-24C8D8)
+![Rust](https://img.shields.io/badge/Rust-stable-000000)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
-![Vite](https://img.shields.io/badge/Vite-5-646CFF)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
 
-> 当前版本：`0.1.0`，处于功能完善与可靠性优化阶段。
+> 当前版本：`0.1.0`。桌面运行时已从 Electron 迁移到 Tauri；macOS ARM64 已完成编译、打包和启动冒烟验证。
 
 ## 当前能力
 
 ### 文件管理
 
-- 手动选择并记忆工作区。
-- 递归展示文件夹以及 `.md`、`.markdown` 文件。
-- 新建文件、创建真实空文件夹、重命名、移动和移到废纸篓。
-- 文件或文件夹拖入其他目录进行移动。
-- 同名重命名/移动默认阻止，避免静默覆盖。
-- 工作区路径守卫，拒绝 `..`、绝对路径和符号链接越界访问。
-- chokidar 监听工作区变化并刷新文件树。
+- 选择并记忆本地工作区。
+- 递归展示目录和 `.md`、`.markdown` 文件。
+- 默认按“文件夹优先 + 名称自然升序”展示，并支持名称降序、最近修改和类型排序。
+- 文件树没有选中态，只标识当前打开的文档。
+- 新建文件/文件夹、重命名、移动和移到系统废纸篓。
+- 工具栏新建创建到当前打开文档所在目录，未打开文档时创建到工作区根目录；右键文件夹或文件可在指定目录新建。
+- 不提供拖拽移动；改用右键「移动到…」弹窗选择目标目录，支持筛选和键盘选择。
+- 非法目标（自身、后代目录、已在此处、同名冲突）在弹窗中直接置灰并说明原因。
+- 同名目标默认拒绝，避免静默覆盖。
+- 文件操作失败按 Rust 稳定错误码给出具体原因，不再是笼统提示。
+- Rust WorkspaceGuard 拒绝 `..`、绝对路径越界和符号链接逃逸。
+- Rust `notify` 监听工作区变化并通知文件树刷新。
+- 支持 Markdown 文件和目录导入，同名文件自动追加编号。
 
-### Markdown 编辑
+### Markdown 编辑与阅读
 
-- CodeMirror 6 Markdown 语法高亮、行号、活动行和自动换行。
-- `⌘/Ctrl+B` 粗体、`⌘/Ctrl+I` 斜体、`⌘/Ctrl+K` 链接。
-- `⌘/Ctrl+F` 查找、`⌘/Ctrl+H` 替换，支持大小写和正则表达式。
+- CodeMirror 6 Markdown 高亮、行号、自动换行、查找和替换。
 - 2 秒 debounce 自动保存以及 `⌘/Ctrl+S` 手动保存。
-- 保存操作串行执行；切换文件、工作区、阅读模式或关闭窗口前会先保存。
-- 状态栏展示字数、预计阅读时间和保存状态。
-- 粘贴或拖入图片后保存至 `.md-manage/images/` 并插入 Markdown 引用。
+- 保存操作串行执行；切换文件、工作区、阅读模式或关闭窗口前先 flush。
+- unified + remark + rehype 渲染，支持 GFM 和代码高亮。
+- 图片粘贴/拖入后保存至 `.md-manage/images/`。
+- 普通相对图片以 Markdown 文件目录为基准解析。
+- 本地图片使用 `md-manage-resource://` 受控协议，不开放 `file://` 或全磁盘权限。
+- 阅读搜索、图片 Lightbox、HTML 导出和系统打印。
 
-### 阅读与导出
+### 桌面集成
 
-- unified + remark + rehype 渲染管道。
-- GFM 表格、任务列表、删除线和 highlight.js 代码高亮。
-- 相对图片以当前 Markdown 文件目录为基准解析。
-- `.md-manage/images/...` 以工作区根目录为基准解析。
-- 中文、空格和特殊字符路径编码。
-- 阅读区搜索、图片放大、PDF 和 HTML 导出。
-- Markdown HTML 经 rehype-sanitize 清洗。
+- Tauri capability 最小权限配置。
+- 原生工作区/导出对话框和右键菜单。
+- 外部链接仅允许 `http`、`https`、`mailto` 并交给系统浏览器。
+- 窗口关闭请求经过 Renderer 保存握手。
+- Tauri window-state 插件保存窗口状态。
 
-### 界面
+## 环境要求
 
-- 浅色、深色和跟随系统三种主题。
-- `⌘/Ctrl+E` 切换编辑/阅读模式。
-- `⌘/Ctrl+,` 打开设置与使用说明。
-- 窗口位置、尺寸、最大化和全屏状态持久化。
+- Node.js 22+
+- pnpm 10+
+- Rust stable 与 Cargo
+- 平台依赖：
+  - macOS：Xcode Command Line Tools
+  - Windows：MSVC Build Tools、WebView2
+  - Linux：WebKitGTK 4.1、appindicator、librsvg、patchelf
 
-## 快速开始
+安装 Rust：
 
-### 环境
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup component add rustfmt clippy
+```
 
-- Node.js 22 或更高版本
-- pnpm 10
-
-### 安装与运行
+## 开发与构建
 
 ```bash
 pnpm install
-pnpm run dev
-```
 
-项目的 `.npmrc` 已配置 Electron 国内镜像。开发命令会启动 Vite，并自动打开 Electron 窗口。
+# Tauri 桌面开发模式
+pnpm dev
 
-### 检查、测试和构建
+# 只启动 Vite Renderer
+pnpm dev:web
 
-```bash
-# Renderer 与 Electron 类型检查
+# TypeScript + Rust 检查
 pnpm run build:check
 
-# 交互式测试
-pnpm run test
-
-# CI 风格的一次性测试
+# 前端与 Rust 测试
 pnpm exec vitest run
+pnpm run test:rust
 
-# 生产构建
-pnpm run build
+# 只构建 Web 资源
+pnpm run build:web
 
-# 生成安装包
-pnpm run package
-
-# 重新生成应用图标
-pnpm run icon
+# 构建当前平台应用与安装包
+pnpm build
 ```
 
-生产构建输出到 `dist/`，安装包输出到 `release/`。
+构建产物位于：
+
+```text
+dist/renderer/                              # Web 资源
+src-tauri/target/release/md-manage          # 当前平台二进制
+src-tauri/target/release/bundle/            # .app/.dmg 等安装产物
+```
+
+macOS ARM64 当前可生成：
+
+```text
+src-tauri/target/release/bundle/macos/简记.app
+src-tauri/target/release/bundle/dmg/简记_0.1.0_aarch64.dmg
+```
 
 ## 项目结构
 
 ```text
 md-manage/
-├── electron/
-│   ├── main.ts                    # 应用与窗口生命周期
-│   ├── preload.ts                 # contextBridge API
-│   ├── windowState.ts             # 窗口状态持久化
-│   ├── ipc/                       # 文件、配置、菜单、导入、窗口 IPC
-│   └── services/
-│       └── workspaceGuard.ts      # 工作区路径和符号链接边界
 ├── src/
-│   ├── App.tsx                    # 根布局、主题、全局事件
-│   ├── components/
-│   │   ├── sidebar/               # 文件树与文件操作
-│   │   ├── editor/                # CodeMirror、搜索与状态栏
-│   │   ├── reader/                # 阅读、搜索、导出、Lightbox
-│   │   ├── settings/              # 设置与使用说明
-│   │   └── dialogs/               # 行内重命名
-│   ├── services/
-│   │   └── documentSession.ts     # 串行保存与文档切换协调
-│   ├── stores/                    # Zustand 状态
-│   ├── lib/                       # Markdown、Front Matter、字数、快捷键
-│   ├── types/                     # FileNode 与 ElectronAPI 契约
-│   └── styles/                    # 全局主题和阅读排版
-├── tests/unit/                    # Vitest 单元测试
-├── document/                      # 技术、调研、规划与历史文档
-├── build/                         # 应用图标
-├── scripts/                       # 构建辅助脚本
-├── electron-builder.yml
-└── vite.config.ts
+│   ├── platform/tauri.ts             # DesktopAPI → Tauri invoke/listen/plugins
+│   ├── services/documentSession.ts   # 串行保存与文档切换协调
+│   ├── components/                   # Sidebar、Editor、Reader、Settings
+│   ├── stores/                       # Zustand 状态
+│   ├── lib/markdown.ts               # Markdown 与受控图片协议
+│   └── types/ipc.ts                  # DesktopAPI 类型契约
+├── src-tauri/
+│   ├── capabilities/default.json     # 最小桌面权限
+│   ├── src/commands.rs               # 文件、工作区、导入、导出、配置命令
+│   ├── src/workspace_guard.rs        # 路径与符号链接边界
+│   ├── src/state.rs                  # 工作区和 watcher 状态
+│   ├── src/error.rs                  # 稳定错误码
+│   └── tauri.conf.json               # 窗口、安全与打包配置
+├── tests/unit/                        # Vitest
+├── document/                          # 架构、调研、方案与历史文档
+└── .github/workflows/ci.yml           # TypeScript、Rust、测试与构建
 ```
 
-## 数据存储
+## 数据与安全
 
-用户内容完全保存在所选工作区：
+用户内容保存在工作区：
 
 ```text
 <workspace>/
 ├── notes.md
 ├── subfolder/
-│   ├── README.md
-│   └── chart.png
-└── .md-manage/
-    └── images/                    # 应用粘贴/拖入的图片
+└── .md-manage/images/
 ```
 
-应用配置保存在 Electron `userData/config.json`，主要包括工作区路径和窗口状态。主题及部分 UI 偏好由 Zustand persist 保存在 localStorage。
+应用配置保存在 Tauri `app_config_dir/config.json`。首次运行时会尝试只读导入旧 Electron `md-manage/config.json` 的工作区路径，旧配置不会被删除。
 
-## 快捷键
+安全边界：
 
-| 功能 | macOS | Windows / Linux |
-|---|---|---|
-| 保存 | `⌘S` | `Ctrl+S` |
-| 粗体 | `⌘B` | `Ctrl+B` |
-| 斜体 | `⌘I` | `Ctrl+I` |
-| 插入链接 | `⌘K` | `Ctrl+K` |
-| 查找 | `⌘F` | `Ctrl+F` |
-| 替换 | `⌘H` | `Ctrl+H` |
-| 编辑/阅读模式 | `⌘E` | `Ctrl+E` |
-| 设置 | `⌘,` | `Ctrl+,` |
-| 撤销/重做 | `⌘Z` / `⌘⇧Z` | `Ctrl+Z` / `Ctrl+Shift+Z` |
-
-## 安全与可靠性
-
-- Renderer 未启用 Node.js 集成，并使用 context isolation。
-- preload 只暴露显式白名单 API。
-- 文件 API 被限制在当前工作区内，并检查符号链接逃逸。
-- 删除默认进入系统废纸篓，不回退为静默永久删除。
-- 同名移动和重命名不会覆盖已有目标。
-- Markdown 输出经过 sanitize，本地图片只允许解析到工作区内。
-- 自动保存使用串行队列，旧写入不会把新编辑错误标记为已保存。
-
-仍在优化：Electron sandbox/webSecurity、自定义本地资源协议、外部修改冲突处理、设置项真实生效和大型工作区增量加载。
+- Renderer 不直接获得通用文件系统权限；
+- 文件命令从 Rust 共享状态读取当前工作区；
+- 现有目标和待创建目标均检查 canonical path；
+- 目录扫描跳过符号链接；
+- 本地图片协议复用同一 WorkspaceGuard，并限制图片 MIME；
+- Markdown HTML 经 `rehype-sanitize` 清洗；
+- Tauri CSP 禁止任意脚本与连接来源。
 
 ## 已验证状态
 
-当前分支最近一次完整验证结果：
+- TypeScript 检查通过。
+- Rust `cargo check` 与 Clippy `-D warnings` 通过。
+- 6 个前端测试文件、31 项测试通过。
+- 3 项 Rust WorkspaceGuard 测试通过，包含父路径和符号链接越界。
+- Vite 生产构建通过。
+- Tauri macOS ARM64 release、`.app` 和 `.dmg` 构建通过。
+- release 二进制完成启动冒烟验证。
 
-- TypeScript Renderer/Electron 检查通过。
-- 4 个测试文件、21 项测试通过。
-- Vite Renderer、Electron main 和 preload 生产构建通过。
-- `pnpm audit --prod` 无已知漏洞。
-- 真实 Electron 窗口完成工作区加载、图片阅读、Lightbox、阅读搜索、编辑自动保存、CRUD、冲突阻止和越界阻止验证。
+## 风险标记
+
+| ID | 等级 | 状态 | 说明 |
+|---|---|---|---|
+| `RISK-TAURI-PDF` | 高 | 已降级 | Tauri 无统一 `printToPDF`，当前“PDF”调用系统打印对话框 |
+| `RISK-CROSS-PLATFORM` | 高 | 待验证 | Windows/Linux 尚未执行真实安装与全流程验收 |
+| `RISK-RESOURCE-URL-WIN` | 高 | 待修复 | 本地图片 URL 硬编码 `md-manage-resource://localhost/`，Windows/Android 需要 `http://md-manage-resource.localhost/` |
+| `RISK-SAVE-CONFLICT` | 高 | 待实现 | 尚未检测其他程序修改当前文件，也未完成跨平台原子替换 |
+| `RISK-E2E` | 中 | 待补充 | 当前有单测、构建与启动验证，缺少自动化桌面端全流程测试 |
+| `RISK-CONFIG-MIGRATION` | 中 | 待验证 | 旧 Electron 配置导入逻辑尚未在三平台验证 |
+| `RISK-BUNDLE-SIZE` | 中 | 待优化 | Renderer 包含完整 CodeMirror language-data，主 chunk 约 1.3 MB |
+| `RISK-SIGNING` | 中 | 待配置 | macOS 公证、Windows 签名和正式更新通道尚未配置 |
+| `RISK-UNDO-SCOPE` | 中 | 未实现 | 应用内没有文件操作撤销；系统废纸篓无法提供可靠的跨平台恢复句柄 |
 
 ## 文档
 
 - [文档索引](./document/README.md)
-- [技术架构文档](./document/技术架构文档.md)
+- [当前技术架构](./document/技术架构文档.md)
+- [Tauri 迁移技术方案与实施状态](./document/Tauri迁移技术方案.md)
 - [项目调研报告](./document/项目调研报告.md)
 - [项目优化与重构方案](./document/项目优化与重构方案.md)
-
-## 已知限制
-
-- 外部修改当前打开文件时，文件树会刷新，但尚未提供完整的内容冲突解决界面。
-- 设置面板中的字体大小、Tab 宽度和自动保存选项尚未全部接入编辑器。
-- Renderer 仍包含完整 CodeMirror language-data，生产主 chunk 偏大。
-- PDF 导出依赖 Electron Chromium；三平台安装包需要分别进行人工验收。
-- 应用当前仍设置 `sandbox: false` 和 `webSecurity: false`，后续计划通过受控资源协议收紧。
+- [左侧文件管理系统优化技术方案](./document/左侧文件管理系统优化技术方案.md)
+- [「移动到…」功能技术方案](./document/移动到功能技术方案.md)
 
 ## License
 
-`package.json` 声明 MIT。正式发布前应补充独立的 `LICENSE` 文件。
+MIT。正式发布前仍需补充独立的 `LICENSE` 文件。

@@ -19,9 +19,8 @@
   background: var(--bg-hover);
 }
 
-.item.active {
-  background: var(--color-black);
-  color: var(--bg-white);
+.item.open {
+  background: var(--bg-hover);
 }
 
 .icon {
@@ -30,7 +29,7 @@
   opacity: 0.6;
 }
 
-.item.active .icon {
+.item.open .icon {
   opacity: 1;
 }
 

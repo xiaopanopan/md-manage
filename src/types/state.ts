@@ -6,6 +6,8 @@ import type { FileNode } from './file';
 
 export type ViewMode = 'read' | 'edit';
 export type Theme = 'light' | 'dark' | 'auto';
+export type ExplorerSortMode = 'name' | 'modified' | 'type';
+export type SortDirection = 'asc' | 'desc';
 
 export interface AppState {
   // ── 文件状态 ──
@@ -14,12 +16,15 @@ export interface AppState {
   isDirty: boolean;
   files: FileNode[];
   recentFiles: string[];
+  expandedPaths: string[];
 
   // ── UI 状态 ──
   viewMode: ViewMode;
   theme: Theme;
   sidebarVisible: boolean;
   settingsOpen: boolean;
+  explorerSortMode: ExplorerSortMode;
+  explorerSortDirection: SortDirection;
 
   // ── 工作区 ──
   workspace: string | null;
@@ -32,6 +37,8 @@ export interface AppActions {
   markDirty(): void;
   setFiles(files: FileNode[]): void;
   addRecentFile(path: string): void;
+  setFolderExpanded(path: string, expanded: boolean): void;
+  expandAncestors(ancestors: string[]): void;
 
   switchMode(mode: ViewMode): void;
   setTheme(theme: Theme): void;
@@ -39,6 +46,7 @@ export interface AppActions {
   setSidebarVisible(visible: boolean): void;
   openSettings(): void;
   closeSettings(): void;
+  setExplorerSort(mode: ExplorerSortMode, direction: SortDirection): void;
 
   setWorkspace(path: string): void;
 }

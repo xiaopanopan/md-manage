@@ -4,16 +4,6 @@
   transition: background var(--transition-fast);
 }
 
-.folder.dropTarget {
-  background: rgba(0, 0, 0, 0.06);
-  outline: 1px dashed var(--color-gray-500);
-  outline-offset: -1px;
-}
-
-[data-theme="dark"] .folder.dropTarget {
-  background: rgba(255, 255, 255, 0.08);
-}
-
 .header {
   display: flex;
   align-items: center;
@@ -31,11 +21,6 @@
 
 .header:hover {
   background: var(--bg-hover);
-}
-
-.header.active {
-  background: var(--color-black);
-  color: var(--bg-white);
 }
 
 .arrow {

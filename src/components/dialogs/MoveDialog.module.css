@@ -1,0 +1,168 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100vw - 40px));
+  max-height: min(560px, calc(100vh - 80px));
+  padding: 20px;
+  color: var(--color-black);
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 以下都是固定高度区域。在 column flex 容器里必须显式 flex-shrink: 0，
+   否则内容超过 max-height 时会被压扁，配合 overflow: hidden 导致文字被裁。
+   只有 .list 允许收缩并滚动。 */
+.dialog h2 {
+  flex-shrink: 0;
+  margin: 0 0 14px;
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.4;
+  /* 文件名是这里最关键的信息，允许换行完整显示，不做省略。 */
+  overflow-wrap: anywhere;
+}
+
+.location {
+  flex-shrink: 0;
+  margin: -6px 0 12px;
+  overflow: hidden;
+  color: var(--color-gray-500);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dialog input {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: 100%;
+  padding: 8px 10px;
+  color: var(--color-black);
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.dialog input:focus {
+  border-color: var(--color-black);
+  box-shadow: 0 0 0 2px var(--color-gray-100);
+}
+
+.list {
+  flex: 1;
+  /* column flex 里 min-height 默认 auto，会让列表撑开而不是滚动。 */
+  min-height: 0;
+  margin: 10px 0 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 30px;
+  padding-right: 8px;
+  color: var(--color-gray-800);
+  font-family: var(--font-code);
+  font-size: var(--text-sm);
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* 排除 .active：hover 与选中同为 (0,3,0)/(0,2,0) 时 hover 会只覆盖背景、
+   留下选中态的白字，造成白字压浅灰底看不清。 */
+.option:hover:not(:disabled):not(.active) {
+  background: var(--bg-hover);
+}
+
+.option.active,
+.option.active:hover {
+  color: var(--bg-white);
+  background: var(--color-black);
+}
+
+.option:disabled {
+  color: var(--color-gray-500);
+  cursor: default;
+}
+
+.optionName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reason {
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.empty {
+  flex-shrink: 0;
+  margin: 12px 0 0;
+  color: var(--color-gray-500);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.error {
+  flex-shrink: 0;
+  margin: 8px 0 0;
+  color: var(--color-danger, #d14343);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.actions button {
+  padding: 7px 14px;
+  color: var(--color-black);
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.actions .primary {
+  color: var(--bg-white);
+  background: var(--color-black);
+  border-color: var(--color-black);
+}

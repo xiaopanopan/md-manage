@@ -59,3 +59,24 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
 }
+
+/* Tauri 使用系统 WebView 打印对话框导出 PDF，只打印阅读内容。 */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .dz-reader,
+  .dz-reader * {
+    visibility: visible !important;
+  }
+
+  .dz-reader {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+}

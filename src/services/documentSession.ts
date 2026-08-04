@@ -4,7 +4,7 @@ let saveQueue: Promise<void> = Promise.resolve();
 
 function enqueueWrite(filePath: string, content: string): Promise<void> {
   const task = saveQueue.then(async () => {
-    await window.electronAPI.file.write(filePath, content);
+    await window.desktopAPI.file.write(filePath, content);
 
     const current = useAppStore.getState();
     if (
@@ -44,7 +44,7 @@ export async function openDocument(filePath: string): Promise<void> {
   if (state.currentFile === filePath) return;
 
   await flushCurrentDocument();
-  const content = await window.electronAPI.file.read(filePath);
+  const content = await window.desktopAPI.file.read(filePath);
   const latest = useAppStore.getState();
   latest.setCurrentFile(filePath, content);
   latest.addRecentFile(filePath);

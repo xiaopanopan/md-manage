@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { FileNode } from '@/types/file';
 import { useCurrentFile } from '@/hooks/useAppStore';
 import { RenameDialog } from '@/components/dialogs/RenameDialog';
@@ -29,10 +30,17 @@ export function FileItem({
 }: Props) {
   const currentFile = useCurrentFile();
 
-  const isActive = currentFile === file.path;
+  const isOpen = currentFile === file.path;
   const isRenaming = renamingPath === file.path;
+  const itemRef = useRef<HTMLDivElement>(null);
 
-  const handleClick = async () => {
+  // 打开的文档滚动到可见区域，替代原来基于选中态的定位。
+  useEffect(() => {
+    if (isOpen) itemRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [isOpen]);
+
+  const handleClick = async (event: React.MouseEvent) => {
+    event.stopPropagation();
     if (isRenaming) return;
     try {
       await openDocument(file.path);
@@ -45,28 +53,23 @@ export function FileItem({
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    window.electronAPI?.contextMenu.show('file', {
+    window.desktopAPI?.contextMenu.show('file', {
       path: file.path,
       parentPath: file.parentPath,
       isFolder: 'false',
     });
   };
 
-  const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData('application/x-file-path', file.path);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
   const baseName = file.name.replace(/\.(md|markdown)$/i, '');
 
   return (
     <div
-      className={`${styles.item} ${isActive ? styles.active : ''}`}
+      ref={itemRef}
+      title={file.name}
+      className={`${styles.item} ${isOpen ? styles.open : ''}`}
       style={{ paddingLeft: `${12 + depth * 12}px` }}
       onClick={handleClick}
       onContextMenu={handleContextMenu}
-      draggable={!isRenaming}
-      onDragStart={handleDragStart}
     >
       <FileIcon />
       {isRenaming ? (

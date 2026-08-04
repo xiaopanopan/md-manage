@@ -10,7 +10,7 @@ import { defaultSchema } from 'rehype-sanitize';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyNode = any;
 
-// 允许 file:// 协议图片和 class 属性（代码高亮需要）
+// 允许受控的 Tauri 图片协议和 class 属性（代码高亮需要）
 const sanitizeSchema = {
   ...defaultSchema,
   attributes: {
@@ -21,18 +21,9 @@ const sanitizeSchema = {
   },
   protocols: {
     ...defaultSchema.protocols,
-    src: [...(defaultSchema.protocols?.src ?? []), 'file'],
+    src: [...(defaultSchema.protocols?.src ?? []), 'md-manage-resource'],
   },
 };
-
-/** 对文件路径做 URL 编码，保留分隔符 `/` */
-function encodeFilePath(p: string): string {
-  return p
-    .replace(/\\/g, '/') // Windows 反斜杠转正斜杠
-    .split('/')
-    .map((seg) => (/^[a-zA-Z]:$/.test(seg) ? seg : encodeURIComponent(seg)))
-    .join('/');
-}
 
 function normalizePath(filePath: string): string {
   const normalized = filePath.replace(/\\/g, '/');
@@ -66,7 +57,7 @@ function isInsideWorkspace(workspace: string, filePath: string): boolean {
 }
 
 /**
- * 将相对图片路径转为 file:// URL：
+ * 将相对图片路径转为受 WorkspaceGuard 保护的 Tauri 自定义协议 URL：
  * - `.md-manage/...` 相对工作区根目录；
  * - 普通相对路径相对当前 Markdown 文件所在目录。
  */
@@ -75,7 +66,11 @@ function rehypeFixImagePaths(workspace: string, currentFile?: string) {
     visit(tree, 'element', (node: AnyNode) => {
       if (node.tagName === 'img' && node.properties?.src) {
         const src = node.properties.src as string;
-        if (!src.startsWith('http') && !src.startsWith('file://') && !src.startsWith('data:')) {
+        if (
+          !src.startsWith('http') &&
+          !src.startsWith('md-manage-resource://') &&
+          !src.startsWith('data:')
+        ) {
           const normalizedSrc = src.replace(/\\/g, '/').replace(/^\.\//, '');
           const baseDir = normalizedSrc.startsWith('.md-manage/')
             ? workspace
@@ -86,8 +81,7 @@ function rehypeFixImagePaths(workspace: string, currentFile?: string) {
 
           // Markdown 内容不能通过 ../ 读取工作区外的本地文件。
           if (isInsideWorkspace(workspace, absolutePath)) {
-            const encodedPath = encodeFilePath(absolutePath);
-            node.properties.src = `file://${encodedPath}`;
+            node.properties.src = `md-manage-resource://localhost/${encodeURIComponent(absolutePath)}`;
           }
         }
       }
