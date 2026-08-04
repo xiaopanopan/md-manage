@@ -171,11 +171,19 @@ export default function App() {
     return window.desktopAPI.onBeforeClose(async () => {
       try {
         await flushCurrentDocument();
-        await window.desktopAPI.window.confirmClose();
       } catch (err) {
         console.error('[App] save before close failed:', err);
-        const discard = window.confirm('保存失败。是否放弃未保存的修改并关闭窗口？');
-        if (discard) await window.desktopAPI.window.confirmClose();
+        if (!window.confirm('保存失败。是否放弃未保存的修改并关闭窗口？')) return;
+      }
+      // 关闭失败和保存失败是两件事，不能共用一条提示：
+      // destroy 缺少 core:window:allow-destroy 时会在这里失败，而内容其实已经写盘。
+      try {
+        await window.desktopAPI.window.confirmClose();
+      } catch (err) {
+        console.error('[App] close window failed:', err);
+        window.alert(
+          describeDesktopError(err, '无法关闭窗口。内容已保存，请检查应用的 capability 权限配置。')
+        );
       }
     });
   }, []);
